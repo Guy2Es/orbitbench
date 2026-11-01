@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orbitbench"
+version = "0.0.1"
+description = "A benchmark and RL environment for mission analysis, graded by replay in NASA GMAT."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+dependencies = ["numpy", "pydantic>=2.7", "pyyaml"]
+
+[project.optional-dependencies]
+dev = ["pytest", "sgp4"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+orbitbench = ["families/templates/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = ["gmat: needs GMAT R2026a and a gmat-mcp checkout (slow)"]
