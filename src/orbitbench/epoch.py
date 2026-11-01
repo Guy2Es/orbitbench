@@ -20,7 +20,10 @@ def parse_epoch(text: str) -> int:
         raise ValueError(f"not a UTCGregorian epoch: {text!r}")
     day, year, hour, minute, second = (int(m.group(i)) for i in (1, 3, 4, 5, 6))
     millis = int((m.group(7) or "0").ljust(3, "0"))
-    date = datetime(year, MONTHS.index(m.group(2)) + 1, day, hour, minute, second)
+    try:
+        date = datetime(year, MONTHS.index(m.group(2)) + 1, day, hour, minute, second)
+    except ValueError as exc:
+        raise ValueError(f"not a UTCGregorian epoch: {text!r} ({exc})") from None
     return (date - _ORIGIN) // _MS + millis
 
 
