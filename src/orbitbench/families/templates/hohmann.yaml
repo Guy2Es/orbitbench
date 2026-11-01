@@ -1,0 +1,44 @@
+name: hohmann
+levels:
+  values: 1
+  maneuvers: 3
+
+epoch: "01 Jan 2026 00:00:00.000"
+final_margin_s: 600
+
+ranges:
+  r1_km: [6700.0, 8000.0]
+  r2_km: [12000.0, 42164.0]
+  inc_deg: [0.0, 98.0]
+min_radius_ratio: 1.5
+
+tolerance:
+  delta_v_total_m_s: 1.0
+  sma_rel: 0.001
+  ecc_max: 0.001
+  inc_deg: 0.001
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is on a circular Earth orbit of radius {r1_km} km and inclination
+    {inc_deg} deg. It starts the transfer described below on {epoch} UTC.
+
+    Physical model, which applies to every number you give: the Earth is a point mass with
+    mu = {mu} km^3/s^2 and nothing else acts on the spacecraft. Distances are in km, velocities in km/s and
+    angles in degrees, unless a field name says otherwise.
+
+    Task: transfer the spacecraft to a circular, coplanar orbit of radius {r2_km} km with a two-impulse
+    Hohmann transfer.
+  values: >-
+    Give the total delta-v of the transfer, in m/s, in the field values.delta_v_total_m_s. It is correct if
+    it is within {dv_tol} m/s of the exact value.
+  maneuvers: >-
+    Give the maneuver plan in the field maneuvers: one entry per burn, in chronological order. Each entry has
+    epoch_utc (format 'DD Mon YYYY HH:MM:SS.mmm', UTC, to the millisecond), spacecraft ('{satellite}'),
+    frame (one of VNB, LVLH, MJ2000Eq, Inertial) and delta_v_km_s (three components in km/s, in that frame;
+    in VNB the first component is along the velocity). A burn may be applied at the initial epoch.
+
+    Your plan is replayed in GMAT R2026a from the initial state, with the model above and a Prince-Dormand 7(8)
+    integrator of accuracy 1e-12, and the final state is checked on {final_epoch} UTC: the semi-major axis
+    within {sma_tol_km} km of {r2_km} km, the eccentricity below {ecc_max}, and the inclination within
+    {inc_tol} deg of {inc_deg} deg.
