@@ -1,0 +1,45 @@
+name: frame_trap
+levels:
+  maneuvers: 3
+
+epoch: "01 Jan 2026 00:00:00.000"
+final_margin_s: 600
+
+ranges:
+  r_km: [8000.0, 20000.0]
+  inc_deg: [0.0, 98.0]
+  raan_deg: [0.0, 360.0]
+  ta_deg: [0.0, 360.0]
+  apoapsis_factor: [1.3, 3.0]    # raised apoapsis, in units of r
+  periapsis_factor: [0.55, 0.85]  # lowered periapsis, in units of r
+min_periapsis_km: 6600.0
+dv_margin_m_s: 0.5
+
+tolerance:
+  apsis_rel: 0.001
+  inc_deg: 0.001
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is on a circular Earth orbit of radius {r_km} km with these elements on
+    {epoch} UTC, in the Earth mean-equator and mean-equinox of J2000 inertial frame: inclination {inc_deg} deg,
+    right ascension of the ascending node {raan_deg} deg, true anomaly {ta_deg} deg.
+
+    Physical model, which applies to every number you give: the Earth is a point mass with
+    mu = {mu} km^3/s^2 and nothing else acts on the spacecraft. Distances are in km, velocities in km/s and
+    angles in degrees, unless a field name says otherwise.
+
+    Task: {goal}. Use a single impulsive burn at the initial epoch, in the orbit plane, and no more than
+    {budget_m_s} m/s of delta-v. The burn controller of this spacecraft takes only the frame LVLH, defined here
+    at the burn: x points away from the centre of the Earth along the position vector, z points along the
+    orbital angular momentum, and y completes the right-handed frame, so that it lies in the orbit plane and
+    points in the direction of motion.
+  maneuvers: >-
+    Give the maneuver plan in the field maneuvers: one entry, with epoch_utc (format 'DD Mon YYYY HH:MM:SS.mmm',
+    UTC, to the millisecond), spacecraft ('{satellite}'), frame ('LVLH') and delta_v_km_s (three components in
+    km/s, in the LVLH frame defined above, in the order x, y, z).
+
+    Your plan is replayed in GMAT R2026a from the initial state, with the model above and a Prince-Dormand 7(8)
+    integrator of accuracy 1e-12, and the final state is checked on {final_epoch} UTC: the periapsis radius
+    within {apsis_tol_km} km of {rp_km} km, the apoapsis radius within {apsis_tol_km} km of {ra_km} km, the
+    inclination within {inc_tol} deg of {inc_deg} deg, and the total delta-v within {budget_m_s} m/s.
