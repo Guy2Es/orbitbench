@@ -1,0 +1,44 @@
+name: plane_change_dv
+levels:
+  values: 1
+  maneuvers: 3
+
+epoch: "01 Jan 2026 00:00:00.000"
+final_margin_s: 600
+
+ranges:
+  r_km: [6700.0, 42164.0]
+  inc1_deg: [0.0, 60.0]
+  delta_inc_deg: [3.0, 40.0]
+
+tolerance:
+  delta_v_total_m_s: 1.0
+  sma_rel: 0.001
+  ecc_max: 0.001
+  inc_deg: 0.001
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is on a circular Earth orbit of radius {r_km} km and inclination
+    {inc1_deg} deg, at its ascending node on {epoch} UTC.
+
+    Physical model, which applies to every number you give: the Earth is a point mass with
+    mu = {mu} km^3/s^2 and nothing else acts on the spacecraft. Distances are in km, velocities in km/s and
+    angles in degrees, unless a field name says otherwise.
+
+    Task: change the inclination of the orbit to {inc2_deg} deg with a single impulsive burn at that node, so
+    that the orbit stays circular with the same radius.
+  values: >-
+    Give the delta-v of the burn, in m/s, in the field values.delta_v_total_m_s. It is correct if it is
+    within {dv_tol} m/s of the exact value.
+  maneuvers: >-
+    Give the maneuver plan in the field maneuvers: one entry per burn, in chronological order. Each entry has
+    epoch_utc (format 'DD Mon YYYY HH:MM:SS.mmm', UTC, to the millisecond), spacecraft ('{satellite}'),
+    frame (one of VNB, LVLH, MJ2000Eq, Inertial) and delta_v_km_s (three components in km/s, in that frame;
+    in VNB the components are along the velocity, along the orbit normal and along the bi-normal). A burn may
+    be applied at the initial epoch.
+
+    Your plan is replayed in GMAT R2026a from the initial state, with the model above and a Prince-Dormand 7(8)
+    integrator of accuracy 1e-12, and the final state is checked on {final_epoch} UTC: the semi-major axis
+    within {sma_tol_km} km of {r_km} km, the eccentricity below {ecc_max}, and the inclination within
+    {inc_tol} deg of {inc2_deg} deg.
