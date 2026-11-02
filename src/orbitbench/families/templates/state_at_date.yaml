@@ -1,0 +1,36 @@
+name: state_at_date
+levels:
+  values: 2
+
+epoch: "01 Jan 2026 00:00:00.000"
+
+ranges:
+  sma_km: [7000.0, 30000.0]
+  ecc: [0.05, 0.7]
+  inc_deg: [5.0, 120.0]
+  raan_deg: [0.0, 360.0]
+  aop_deg: [0.0, 360.0]
+  ta_deg: [0.0, 360.0]
+  dt_hours: [0.5, 36.0]
+min_periapsis_km: 6700.0
+
+tolerance:
+  position_km: 1.0
+  velocity_km_s: 0.001
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is on an Earth orbit with these elements on {epoch} UTC, in the Earth
+    mean-equator and mean-equinox of J2000 inertial frame: semi-major axis {sma_km} km, eccentricity {ecc},
+    inclination {inc_deg} deg, right ascension of the ascending node {raan_deg} deg, argument of periapsis
+    {aop_deg} deg, true anomaly {ta_deg} deg.
+
+    Physical model, which applies to every number you give: the Earth is a point mass with
+    mu = {mu} km^3/s^2 and nothing else acts on the spacecraft. Distances are in km, velocities in km/s and
+    angles in degrees, unless a field name says otherwise.
+
+    Task: give the position and velocity of the spacecraft in the same frame on {final_epoch} UTC.
+  values: >-
+    Give the six numbers in the fields values.x_km, values.y_km, values.z_km, values.vx_km_s, values.vy_km_s
+    and values.vz_km_s. The answer is correct if each position component is within {pos_tol} km and each
+    velocity component within {vel_tol} km/s of the exact value.
