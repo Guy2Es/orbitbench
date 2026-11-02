@@ -19,6 +19,7 @@ V01_LINES = (
 )
 
 
-def instances(lines=V01_LINES, first_seed: int = 0) -> list[Instance]:
-    """Every instance of `lines`, seeds first_seed .. first_seed + n - 1 for each line."""
-    return [generate(family, seed, mode) for family, mode, n in lines for seed in range(first_seed, first_seed + n)]
+def instances(lines=V01_LINES, first_seed: int = 0, per_line: int | None = None) -> list[Instance]:
+    """Every instance of `lines`, seeds first_seed .. first_seed + n - 1 for each line; `per_line` caps n."""
+    return [generate(family, seed, mode) for family, mode, n in lines
+            for seed in range(first_seed, first_seed + (n if per_line is None else min(n, per_line)))]

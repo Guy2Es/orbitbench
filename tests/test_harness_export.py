@@ -1,6 +1,7 @@
 # tests/test_harness_export.py
 """The JSONL export and the command line, with a scripted model: no Docker, no GMAT."""
 import json
+from pathlib import Path
 
 import pytest
 from inspect_ai import eval as inspect_eval
@@ -11,6 +12,7 @@ from orbitbench.families import FAMILIES
 from orbitbench.harness.catalog import instances
 from orbitbench.harness.cli import parse
 from orbitbench.harness.export import rows_of, write_jsonl
+from orbitbench.harness.report import failures, load, render, tokens
 from orbitbench.harness.task import build_task
 
 MODEL = "mockllm/model"
@@ -50,9 +52,37 @@ def test_write_jsonl_makes_one_line_per_episode(tmp_path):
     assert len(rows) == 3 and {r["condition"] for r in rows} == {"C"}
 
 
+def test_per_line_caps_the_seeds_of_every_line():
+    capped = instances(per_line=2)
+    assert len(capped) == 2 * 11
+    assert len(instances(per_line=100)) == len(instances()) == 61
+    assert [i.seed for i in instances(per_line=2, first_seed=7) if i.family == "j2_drift"] == [7, 8]
+
+
+def test_the_report_counts_the_outcomes_the_tokens_and_lists_the_failures(tmp_path):
+    insts = [i for i in instances() if i.mode == "values"][:2]
+    good = render_reply(FAMILIES[insts[0].family].reference(insts[0]))
+    logs = logs_for(insts, [good, "no block"], tmp_path / "logs")
+    write_jsonl(logs, "B", tmp_path / "episodes.jsonl")
+    rows = load([tmp_path])
+    text = render(rows)
+    assert "2 episodes, 1 not solved" in text and "invalid_format:1" in text and "solved:1" in text
+    assert [r["outcome"] for r in failures(rows)] == ["invalid_format"]
+    assert f"{MODEL}" in tokens(rows)
+
+
+def test_a_token_limit_reaches_the_task():
+    inst = next(iter(instances()))
+    assert build_task([inst], tools=[], sandbox=None, token_limit=1234).token_limit == 1234
+    assert build_task([inst], tools=[], sandbox=None).token_limit is None
+
+
 def test_the_command_line_parses_a_run():
     args = parse(["run", "--condition", "C", "--model", "mockllm/model", "--log-dir", "runs/x",
-                  "--families", "hohmann", "--first-seed", "100", "--max-samples", "2", "--limit", "5"])
+                  "--families", "hohmann", "--first-seed", "100", "--max-samples", "2", "--limit", "5",
+                  "--per-line", "2", "--token-limit", "50000"])
     assert (args.condition, args.families, args.first_seed, args.max_samples, args.limit) == ("C", ["hohmann"], 100, 2, 5)
+    assert (args.per_line, args.token_limit) == (2, 50000)
+    assert parse(["report", "runs/a", "runs/b"]).dirs == [Path("runs/a"), Path("runs/b")]
     with pytest.raises(SystemExit):
         parse(["run", "--condition", "A", "--model", "m", "--log-dir", "x"])
