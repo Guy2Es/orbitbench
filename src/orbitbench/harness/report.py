@@ -13,13 +13,16 @@ def load(dirs: list[Path]) -> list[dict]:
     return rows
 
 
-def tokens(rows: list[dict]) -> dict[str, tuple[int, int]]:
-    """(input, output) tokens per model."""
-    total: dict[str, list[int]] = defaultdict(lambda: [0, 0])
+TOKEN_KINDS = ("input_tokens", "cache_write_tokens", "cache_read_tokens", "output_tokens")
+
+
+def tokens(rows: list[dict]) -> dict[str, dict[str, int]]:
+    """Tokens per model and kind: uncached input, cache writes, cache reads, output (the four are billed apart)."""
+    total: dict[str, dict[str, int]] = defaultdict(lambda: dict.fromkeys(TOKEN_KINDS, 0))
     for r in rows:
-        total[r["model"]][0] += r["input_tokens"]
-        total[r["model"]][1] += r["output_tokens"]
-    return {m: (i, o) for m, (i, o) in total.items()}
+        for kind in TOKEN_KINDS:
+            total[r["model"]][kind] += r.get(kind, 0)
+    return dict(total)
 
 
 def table(rows: list[dict]) -> str:
@@ -32,7 +35,7 @@ def table(rows: list[dict]) -> str:
         outcomes = ", ".join(f"{k}:{v}" for k, v in sorted(Counter(r["outcome"] for r in rs).items()))
         out.append(f"{cond:4} {model:30} {family + '/' + mode:34} {n:>3} {sum(r['solved'] for r in rs) / n:>6.2f} "
                    f"{sum(r['reward'] for r in rs) / n:>6.2f} {sum(r['assistant_turns'] for r in rs) / n:>5.1f} "
-                   f"{sum(r['input_tokens'] + r['output_tokens'] for r in rs) // n:>8}  {outcomes}")
+                   f"{sum(sum(r.get(k, 0) for k in TOKEN_KINDS) for r in rs) // n:>8}  {outcomes}")
     return "\n".join(out)
 
 
@@ -43,8 +46,8 @@ def failures(rows: list[dict]) -> list[dict]:
 def render(rows: list[dict]) -> str:
     bad = failures(rows)
     out = [table(rows), "", f"{len(rows)} episodes, {len(bad)} not solved"]
-    for model, (i, o) in sorted(tokens(rows).items()):
-        out.append(f"tokens {model}: {i} in, {o} out")
+    for model, t in sorted(tokens(rows).items()):
+        out.append(f"tokens {model}: " + ", ".join(f"{t[k]} {k.removesuffix('_tokens')}" for k in TOKEN_KINDS))
     out += ["", "to audit (run, id, condition, outcome):"]
     out += [f"  {r['run']}  {r['id']}  {r['condition']}  {r['outcome']}" for r in bad]
     return "\n".join(out)
