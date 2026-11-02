@@ -5,6 +5,8 @@ from pathlib import Path
 
 from inspect_ai.log import EvalLog
 
+from orbitbench.harness.claims import answer_of, false_claims, trace_of
+
 
 def rows_of(log: EvalLog, condition: str) -> list[dict]:
     rows = []
@@ -16,9 +18,10 @@ def rows_of(log: EvalLog, condition: str) -> list[dict]:
             outcome = f"limit_{sample.limit.type}"       # the reply was cut short: the label says why
         elif sample.error is not None:
             outcome = "error"
+        claims = false_claims(trace_of(sample.messages), answer_of(sample.output.completion), outcome)
         usage = list((sample.model_usage or {}).values())
         rows.append({
-            "id": sample.id, "family": family, "mode": mode, "seed": int(seed), "condition": condition,
+            "id": sample.id, "family": family, "mode": mode, "seed": int(seed), "epoch": sample.epoch, "condition": condition,
             "model": log.eval.model, "outcome": outcome,
             "solved": score.value["solved"] if score else 0.0, "reward": score.value["reward"] if score else 0.0,
             "assistant_turns": sum(m.role == "assistant" for m in sample.messages),
@@ -32,6 +35,7 @@ def rows_of(log: EvalLog, condition: str) -> list[dict]:
             "cache_read_tokens": sum(u.input_tokens_cache_read or 0 for u in usage),
             "output_tokens": sum(u.output_tokens for u in usage),
             "total_time_s": sample.total_time, "working_time_s": sample.working_time,
+            **claims,
             "error": sample.error.message[:500] if sample.error else None,
         })
     return rows

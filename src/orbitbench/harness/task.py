@@ -38,9 +38,10 @@ def gmat_server():
 
 def build_task(instances: Sequence[Instance], condition: str = "B", *, tools: Optional[list] = None,
                sandbox="docker", replay_fn=None, message_limit: int = MESSAGE_LIMIT,
-               token_limit: Optional[int] = None) -> Task:
+               token_limit: Optional[int] = None, epochs: int = 1) -> Task:
     """One task for `condition`. `tools`, `sandbox` (None for none) and `replay_fn` are for tests.
-    `token_limit` caps the tokens of one episode (a spending guard, not part of the declared limits)."""
+    `token_limit` caps the tokens of one episode (a spending guard, not part of the declared limits).
+    `epochs` plays every instance that many times, to measure reliability."""
     if condition not in ("B", "C"):
         raise ValueError(f"unknown condition {condition!r}")
     if tools is None:
@@ -50,4 +51,4 @@ def build_task(instances: Sequence[Instance], condition: str = "B", *, tools: Op
     scorer = orbitbench_scorer(replay_fn) if replay_fn else orbitbench_scorer()
     solver = react(prompt=system_prompt(condition), tools=tools, submit=False, attempts=1)
     return Task(dataset=MemoryDataset([sample_of(i) for i in instances]), solver=solver, scorer=scorer,
-                sandbox=sandbox, message_limit=message_limit, token_limit=token_limit, name=f"orbitbench_{condition}")
+                sandbox=sandbox, message_limit=message_limit, token_limit=token_limit, epochs=epochs, name=f"orbitbench_{condition}")
