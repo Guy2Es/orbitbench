@@ -1,0 +1,10 @@
+# Condition C: the same Python service as B, plus the GMAT service, reachable only through the MCP server.
+services:
+  default:
+    image: orbitbench-python:0.1
+    init: true
+    network_mode: none
+  gmat:
+    image: orbitbench-gmat:0.1
+    init: true
+    network_mode: none

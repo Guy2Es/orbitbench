@@ -9,3 +9,4 @@ jobs/
 logs/
 .env
 private/
+docker/app/
