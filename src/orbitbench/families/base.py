@@ -29,6 +29,10 @@ class Instance:
     params: dict = field(default_factory=dict)
     gravity: dict = field(default_factory=dict)      # Mission Spec gravity of the replay; {} is a point mass
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "Instance":
+        return cls(**data)
+
     def to_dict(self) -> dict:
         return asdict(self)
 
