@@ -19,6 +19,18 @@ V01_LINES = (
 )
 
 
+# v1.0: the 11 lines of v0.1 (unchanged, so that v0.1 stays reproducible), the three level-4 lines and the ill-posed
+# traps. 14 lines + 3 trap lines: 61 + 15 + 9 = 85 instances. The well-posed twins of the traps are reported apart.
+LEVEL_FOUR_LINES = (
+    ("sun_synchronous", "orbit", 5),
+    ("rendezvous_phasing", "maneuvers", 5),
+    ("finite_burn_raise", "finite", 5),
+)
+TRAP_LINES = tuple((f"trap_{kind}", "values", 3) for kind in ("radius", "isp", "altitude"))
+TWIN_LINES = tuple((f"{family}_twin", mode, n) for family, mode, n in TRAP_LINES)
+V10_LINES = V01_LINES + LEVEL_FOUR_LINES + TRAP_LINES
+
+
 def instances(lines=V01_LINES, first_seed: int = 0, per_line: int | None = None,
               max_level: int | None = None) -> list[Instance]:
     """Every instance of `lines`, seeds first_seed .. first_seed + n - 1 for each line; `per_line` caps n,

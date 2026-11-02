@@ -108,3 +108,14 @@ def test_condition_a_is_scored_on_the_reply_alone(tmp_path):
 def test_max_level_keeps_the_low_levels_only():
     assert {i.level for i in instances(max_level=2)} <= {1, 2}
     assert len(instances(max_level=2)) < len(instances())
+
+
+def test_the_v10_catalog_extends_the_v01_one_without_changing_it():
+    from orbitbench.harness.catalog import TWIN_LINES, V10_LINES
+    assert V10_LINES[:len(V01_LINES)] == V01_LINES
+    found, twins = instances(V10_LINES), instances(TWIN_LINES)
+    assert (len(found), len(twins)) == (85, 9)
+    assert len({(i.family, i.mode, i.seed) for i in found + twins}) == 94
+    assert {i.level for i in found} == {1, 2, 3, 4}
+    assert all(not i.well_posed for i in found if i.family.startswith("trap_"))
+    assert all(i.well_posed for i in twins)
