@@ -66,5 +66,8 @@ class HohmannFamily(Family):
         return FinalAnswer(schema_version="1.0", status="solved", values={"delta_v_total_m_s": transfer.total_m_s},
                            maneuvers=burns, claims=claims)
 
+    def reference_values(self, instance: Instance) -> dict:
+        return {"delta_v_total_m_s": self.reference_delta_v_m_s(instance)}
+
     def reference_delta_v_m_s(self, instance: Instance) -> float:
         return hohmann(instance.params["r1_km"], instance.params["r2_km"]).total_m_s

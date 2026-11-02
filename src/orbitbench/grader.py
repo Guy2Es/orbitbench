@@ -37,15 +37,32 @@ class Grade:
         return self.outcome is Outcome.SOLVED
 
 
-def check_constraints(instance: Instance, final: dict) -> list:
-    """Each constraint of the family against the replayed final state."""
+def quantity(name: str, final: dict, plan_delta_v_m_s: float) -> float:
+    """A FinalState field, or one derived from the final state and the plan."""
+    if name == "rp_km":
+        return final["sma_km"] * (1.0 - final["ecc"])
+    if name == "ra_km":
+        return final["sma_km"] * (1.0 + final["ecc"])
+    if name == "plan_delta_v_m_s":
+        return plan_delta_v_m_s
+    return final[name]
+
+
+def check_constraints(instance: Instance, final: dict, plan_delta_v_m_s: float = 0.0) -> list:
+    """Each constraint of the family against the replayed final state.
+
+    A constraint is a `max` bound or a `target` within `abs_tol`; `periodic` (360 for an angle) wraps the gap.
+    """
     checks = []
     for c in instance.constraints:
-        value = final[c["quantity"]]
+        value = quantity(c["quantity"], final, plan_delta_v_m_s)
         if "max" in c:
             met = value <= c["max"]
         else:
-            met = abs(value - c["target"]) <= c["abs_tol"]
+            gap = value - c["target"]
+            if "periodic" in c:
+                gap = (gap + c["periodic"] / 2) % c["periodic"] - c["periodic"] / 2
+            met = abs(gap) <= c["abs_tol"]
         checks.append({**c, "value": value, "met": met})
     return checks
 
@@ -57,13 +74,14 @@ def reward(met_fraction: float, gap_m_s: float) -> float:
 
 def _grade_values(instance: Instance, answer: FinalAnswer) -> Grade:
     family = FAMILIES[instance.family]
-    declared = answer.values.get("delta_v_total_m_s")
-    if declared is None:
-        return Grade(Outcome.INVALID_FORMAT, 0.0, {"missing": "values.delta_v_total_m_s"})
-    error = declared - family.reference_delta_v_m_s(instance)
-    solved = abs(error) <= instance.tolerances["delta_v_total_m_s"]
+    missing = [k for k in instance.tolerances if k not in answer.values]
+    if missing:
+        return Grade(Outcome.INVALID_FORMAT, 0.0, {"missing": [f"values.{k}" for k in missing]})
+    exact = family.reference_values(instance)
+    errors = {k: answer.values[k] - exact[k] for k in instance.tolerances}
+    solved = all(abs(errors[k]) <= tol for k, tol in instance.tolerances.items())
     return Grade(Outcome.SOLVED if solved else Outcome.VALUES_MISMATCH, 1.0 if solved else 0.0,
-                 {"error_m_s": error})
+                 {"errors": errors})
 
 
 def _grade_plan(instance: Instance, answer: FinalAnswer, played: Replay) -> Grade:
@@ -73,14 +91,16 @@ def _grade_plan(instance: Instance, answer: FinalAnswer, played: Replay) -> Grad
             played.status, Outcome.RUN_FAILED)
         return Grade(outcome, 0.0, detail)
     family = FAMILIES[instance.family]
-    checks = check_constraints(instance, played.final)
-    gap = played.plan_delta_v_m_s - family.reference_delta_v_m_s(instance)
+    checks = check_constraints(instance, played.final, played.plan_delta_v_m_s)
+    optimum = family.reference_delta_v_m_s(instance)
+    gap = 0.0 if optimum is None else played.plan_delta_v_m_s - optimum
     score = reward(sum(c["met"] for c in checks) / len(checks), gap)
     detail.update(checks=checks, gap_m_s=gap)
     if not all(c["met"] for c in checks):
         return Grade(Outcome.CONSTRAINTS_VIOLATED, score, detail)
     declared = answer.values.get("delta_v_total_m_s")
-    if declared is not None and abs(declared - played.plan_delta_v_m_s) > instance.tolerances["delta_v_total_m_s"]:
+    tol = instance.tolerances.get("delta_v_total_m_s")
+    if declared is not None and tol is not None and abs(declared - played.plan_delta_v_m_s) > tol:
         detail["declared_delta_v_m_s"] = declared
         return Grade(Outcome.VALUES_MISMATCH, score, detail)
     return Grade(Outcome.SOLVED, score, detail)

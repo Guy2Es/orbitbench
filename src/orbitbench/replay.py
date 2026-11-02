@@ -71,7 +71,7 @@ def build_mission(instance: Instance, answer: FinalAnswer) -> dict:
     return {"spec_version": "1", "name": f"{instance.family}_{instance.seed}", "central_body": "Earth",
             "epoch": instance.epoch,
             "spacecraft": [{"name": instance.satellite, "state": instance.initial_state}],
-            "force_models": [{"name": FORCE_MODEL}],
+            "force_models": [{"name": FORCE_MODEL, **({"gravity": instance.gravity} if instance.gravity else {})}],
             "propagators": [{"name": PROPAGATOR, "force_model": FORCE_MODEL, "integrator": INTEGRATOR,
                              "accuracy": ACCURACY}],
             "sequence": sequence}

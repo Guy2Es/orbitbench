@@ -25,8 +25,9 @@ class Instance:
     satellite: str
     initial_state: dict           # a Mission Spec keplerian or cartesian state
     constraints: list = field(default_factory=list)   # checked on the replayed final state
-    tolerances: dict = field(default_factory=dict)
+    tolerances: dict = field(default_factory=dict)   # values mode: absolute tolerance per answer field
     params: dict = field(default_factory=dict)
+    gravity: dict = field(default_factory=dict)      # Mission Spec gravity of the replay; {} is a point mass
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -42,10 +43,11 @@ def fill(template: str, fields: dict) -> str:
     return template.format(**fields).replace("\n", "\n\n")
 
 
-def answer_format(mode: str, satellite: str) -> str:
-    """The reply format, identical in every condition."""
+def answer_format(mode: str, satellite: str, keys: tuple = ("delta_v_total_m_s",)) -> str:
+    """The reply format, identical in every condition. `keys` are the fields of `values` in values mode."""
     if mode == "values":
-        body = '{"schema_version": "1.0", "status": "solved", "values": {"delta_v_total_m_s": 0.0}}'
+        shape = ", ".join(f'"{k}": 0.0' for k in keys)
+        body = '{"schema_version": "1.0", "status": "solved", "values": {' + shape + '}}'
     else:
         body = ('{"schema_version": "1.0", "status": "solved", "maneuvers": [{"epoch_utc": '
                 f'"01 Jan 2026 00:00:00.000", "spacecraft": "{satellite}", "frame": "VNB", '
@@ -65,6 +67,10 @@ class Family:
 
     def reference(self, instance: Instance) -> FinalAnswer:
         """A correct answer, computed without gmat-mcp's `core`."""
+        raise NotImplementedError
+
+    def reference_values(self, instance: Instance) -> dict:
+        """The exact value of every field of `instance.tolerances`, in values mode."""
         raise NotImplementedError
 
     def reference_delta_v_m_s(self, instance: Instance) -> Optional[float]:
