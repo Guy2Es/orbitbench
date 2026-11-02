@@ -1,0 +1,54 @@
+name: plane_change_budget_plan
+levels:
+  maneuvers: 3
+
+epoch: "01 Jan 2026 00:00:00.000"
+final_margin_s: 600
+
+ranges:
+  r1_km: [6700.0, 8000.0]
+  r2_km: [12000.0, 42164.0]
+  inc_deg: [0.0, 30.0]
+  plane_change_deg: [15.0, 55.0]
+  initial_mass_kg: [800.0, 5000.0]
+  isp_s: [300.0, 450.0]
+# A draw is kept only when every simple strategy (whole plane change at one burn, or separate from the transfer)
+# costs this much more than the optimum, so that the fuel allows the optimum and nothing simple.
+min_strategy_gap_m_s: 10.0
+dv_margin_m_s: 2.0
+g0_m_s2: 9.80665
+
+tolerance:
+  sma_rel: 0.001
+  ecc_max: 0.001
+  inc_deg: 0.001
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is on a circular Earth orbit of radius {r1_km} km and inclination
+    {inc_deg} deg. It is at the ascending node of its orbit on {epoch} UTC.
+
+    Physical model, which applies to every number you give: the Earth is a point mass with
+    mu = {mu} km^3/s^2 and nothing else acts on the spacecraft. Distances are in km, velocities in km/s and
+    angles in degrees, unless a field name says otherwise.
+
+    Task: bring the spacecraft to a circular orbit of radius {r2_km} km and inclination {final_inc_deg} deg,
+    using impulsive burns, in the transfer that takes the least delta-v. The transfer must be finished, with
+    the spacecraft on the final circular orbit, by {final_epoch} UTC.
+
+    Propellant: the spacecraft weighs {initial_mass_kg} kg before the transfer, of which {fuel_mass_kg} kg is
+    propellant. The engine has a specific impulse of {isp_s} s, with g0 = {g0_m_s2} m/s^2. The rocket equation
+    applies, and the total delta-v of your plan, the sum of the magnitudes of your burns, must not exceed
+    what that propellant can deliver.
+  maneuvers: >-
+    Give the maneuver plan in the field maneuvers: one entry per burn, in chronological order. Each entry has
+    epoch_utc (format 'DD Mon YYYY HH:MM:SS.mmm', UTC, to the millisecond), spacecraft ('{satellite}'),
+    frame (one of VNB, LVLH, MJ2000Eq, Inertial) and delta_v_km_s (three components in km/s, in that frame;
+    in VNB the first component is along the velocity and the second along the orbit normal, the direction of
+    the angular momentum). A burn may be applied at the initial epoch.
+
+    Your plan is replayed in GMAT R2026a from the initial state, with the model above and a Prince-Dormand 7(8)
+    integrator of accuracy 1e-12 (the burns are impulsive, so the replay does not lose mass), and the final
+    state is checked on {final_epoch} UTC: the semi-major axis within {sma_tol_km} km of {r2_km} km, the
+    eccentricity below {ecc_max}, the inclination within {inc_tol} deg of {final_inc_deg} deg, and the total
+    delta-v within what the propellant allows.
