@@ -11,7 +11,7 @@ from orbitbench.families import FAMILIES
 from orbitbench.families.base import Instance
 from orbitbench.replay import Replay, replay
 
-# Provisional: the exact reward is fixed on the pilot, then frozen.
+# Frozen on the pilot (docs/freeze.md): the scale of the delta-v gap that halves the reward.
 REWARD_SCALE_M_S = 10.0
 
 
