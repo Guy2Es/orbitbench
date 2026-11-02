@@ -1,5 +1,6 @@
 # src/orbitbench/grader.py
 """Grades a model reply: a labelled outcome and a reward between 0 and 1. No LLM judge, and no look at the transcript."""
+import math
 import tempfile
 from dataclasses import dataclass, field
 from enum import Enum
@@ -37,8 +38,12 @@ class Grade:
         return self.outcome is Outcome.SOLVED
 
 
-def quantity(name: str, final: dict, plan_delta_v_m_s: float) -> float:
-    """A FinalState field, or one derived from the final state and the plan."""
+def quantity(name: str, final: dict, plan_delta_v_m_s: float, point=None) -> float:
+    """A FinalState field, or one derived from the final state and the plan. `point` is the state a miss is measured to."""
+    if name == "position_error_km":
+        return math.dist(final["position_km"], point)
+    if name == "velocity_error_m_s":
+        return 1000.0 * math.dist(final["velocity_km_s"], point)
     if name == "rp_km":
         return final["sma_km"] * (1.0 - final["ecc"])
     if name == "ra_km":
@@ -55,7 +60,7 @@ def check_constraints(instance: Instance, final: dict, plan_delta_v_m_s: float =
     """
     checks = []
     for c in instance.constraints:
-        value = quantity(c["quantity"], final, plan_delta_v_m_s)
+        value = quantity(c["quantity"], final, plan_delta_v_m_s, c.get("point"))
         if "max" in c:
             met = value <= c["max"]
         else:

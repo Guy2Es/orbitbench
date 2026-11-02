@@ -1,0 +1,45 @@
+name: rendezvous_phasing
+levels:
+  maneuvers: 4
+
+epoch: "01 Jan 2026 00:00:00.000"
+
+ranges:
+  sma_km: [7000.0, 9000.0]
+  inc_deg: [0.0, 98.0]
+  raan_deg: [0.0, 360.0]
+  phase_deg: [30.0, 150.0]      # how far ahead of the chaser the target is
+revolutions: [1, 2]             # the deadline is that of a phasing with this many turns
+min_radius_km: 6700.0           # the cheapest phasing orbit must stay above this radius
+dv_margin_m_s: 1.0
+
+tolerance:
+  position_km: 2.0
+  velocity_m_s: 2.0
+
+statement:
+  common: >-
+    Two spacecraft fly on the same circular Earth orbit, in the Earth mean-equator and mean-equinox of J2000
+    inertial frame. On {epoch} UTC the orbit has radius {sma_km} km, inclination {inc_deg} deg and right
+    ascension of the ascending node {raan_deg} deg. The chaser, named {satellite}, is at true anomaly
+    {ta_deg} deg. The target is {phase_deg} deg of true anomaly ahead of it, at {target_ta_deg} deg, and keeps
+    flying this circular orbit without any maneuver.
+
+    Physical model, which applies to every number you give: the Earth is a point mass with
+    mu = {mu} km^3/s^2 and nothing else acts on either spacecraft. Distances are in km, velocities in km/s and
+    angles in degrees, unless a field name says otherwise.
+
+    Task: only {satellite} can maneuver. Plan its impulsive burns so that on {final_epoch} UTC it is at the
+    target's position and has the target's velocity. The total delta-v, the sum of the magnitudes of your burns,
+    must not exceed {budget_m_s} m/s.
+  maneuvers: >-
+    Give the maneuver plan in the field maneuvers: one entry per burn, in chronological order. Each entry has
+    epoch_utc (format 'DD Mon YYYY HH:MM:SS.mmm', UTC, to the millisecond), spacecraft ('{satellite}'),
+    frame (one of VNB, LVLH, MJ2000Eq, Inertial) and delta_v_km_s (three components in km/s, in that frame;
+    in VNB the first component is along the velocity). A burn may be applied at the initial epoch or at the
+    final epoch.
+
+    Your plan is replayed in GMAT R2026a from the initial state, with the model above and a Prince-Dormand 7(8)
+    integrator of accuracy 1e-12, and the final state of {satellite} is checked on {final_epoch} UTC: its position
+    within {pos_tol} km of the target's and its velocity within {vel_tol} m/s of the target's, and the total
+    delta-v within the budget.
