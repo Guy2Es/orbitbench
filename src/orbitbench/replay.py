@@ -5,6 +5,7 @@ GMAT does not reject a stop epoch that is not after the current epoch: it runs t
 job still reports ok. So the plan is checked here, never emitted as a `propagate` to a date that is not
 strictly later, and the final state must carry the instance's final epoch.
 """
+import dataclasses
 import math
 from dataclasses import dataclass
 from typing import Optional
@@ -42,6 +43,14 @@ def plan_delta_v_m_s(answer: FinalAnswer) -> float:
 def _propagate(epoch_ms: int) -> dict:
     return {"type": "propagate", "propagator": PROPAGATOR, "spacecraft": ["Sat"],
             "stop": {"type": "epoch", "epoch": format_epoch(epoch_ms)}}
+
+
+def orbit_instance(instance: Instance, answer: FinalAnswer) -> Instance:
+    """An orbit-design instance with the inclination of the answer filled in, ready to fly without maneuvers."""
+    inc = (answer.initial_orbit or {}).get("inc_deg")
+    if not isinstance(inc, (int, float)) or isinstance(inc, bool) or not 0.0 <= inc <= 180.0:
+        raise PlanError(f"initial_orbit.inc_deg must be a number of degrees in [0, 180], not {inc!r}")
+    return dataclasses.replace(instance, initial_state={**instance.initial_state, "inc_deg": float(inc)})
 
 
 def build_mission(instance: Instance, answer: FinalAnswer) -> dict:
@@ -85,6 +94,8 @@ def replay(instance: Instance, answer: FinalAnswer, job_dir, *, timeout_s: float
     from core.runner import run_mission
     from core.spec import load_mission
     try:
+        if instance.mode == "orbit":      # no maneuvers: the orbit of the answer is flown as it is
+            instance, answer = orbit_instance(instance, answer), answer.model_copy(update={"maneuvers": []})
         mission = load_mission(build_mission(instance, answer))
     except (PlanError, ValueError) as exc:   # pydantic's ValidationError is a ValueError
         return Replay(False, "invalid_plan", str(exc)[:500], None, plan_dv)
@@ -96,4 +107,8 @@ def replay(instance: Instance, answer: FinalAnswer, job_dir, *, timeout_s: float
     if gap_ms > EPOCH_TOLERANCE_MS:
         return Replay(False, "epoch_mismatch", f"the replay ended on {final['epoch_utc']}, not on "
                       f"{instance.final_epoch}", final, plan_dv, run.run.duration_s)
+    if instance.mode == "orbit":
+        days = (parse_epoch(instance.final_epoch) - parse_epoch(instance.epoch)) / 86_400_000.0
+        raan0 = instance.initial_state["raan_deg"]
+        final = {**final, "raan_drift_deg_day": math.remainder(final["raan_deg"] - raan0, 360.0) / days}
     return Replay(True, "ok", None, final, plan_dv, run.run.duration_s)

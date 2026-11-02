@@ -1,0 +1,41 @@
+name: sun_synchronous
+levels:
+  orbit: 4
+
+# Near J2000, where GMAT's Earth axis is the z axis of EarthMJ2000Eq (see j2_drift).
+epoch: "01 Jan 2000 12:00:00.000"
+measure_days: 7          # the drift is measured over a whole number of orbits that lasts about this long
+
+ranges:
+  sma_km: [6900.0, 8600.0]
+  ecc: [0.0, 0.08]
+  raan_deg: [0.0, 360.0]
+  aop_deg: [0.0, 360.0]
+  ta_deg: [0.0, 360.0]
+min_periapsis_km: 6700.0
+# The secular formula is the second reference: an instance whose formula answer drifts further than this from the
+# Sun's rate when its orbit is integrated is rejected.
+formula_agreement_deg_day: 0.015
+
+tolerance:
+  drift_deg_day: 0.02
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is to be placed on an Earth orbit with these elements on {epoch} UTC, in the
+    Earth mean-equator and mean-equinox of J2000 inertial frame: semi-major axis {sma_km} km, eccentricity {ecc},
+    right ascension of the ascending node {raan_deg} deg, argument of periapsis {aop_deg} deg, true anomaly
+    {ta_deg} deg. Its inclination is yours to choose.
+
+    Physical model, which applies to every number you give: the only forces are the Earth's gravity as a point
+    mass plus its J2 zonal term, with mu = {mu} km^3/s^2, equatorial radius {radius} km and J2 = {j2}. The
+    Earth's rotation axis is the z axis of the inertial frame above. Nothing else acts on the spacecraft.
+    Distances are in km and angles in degrees, unless a field name says otherwise.
+
+    Task: choose the inclination so that the orbit is sun-synchronous: the right ascension of its ascending
+    node must turn by {sun_rate} deg per day on average, the Sun's mean motion of one turn per tropical year.
+  orbit: >-
+    Your orbit is flown in GMAT from {epoch} UTC to {final_epoch} UTC, {n_orbits} orbits later, and the drift
+    is the change of the osculating right ascension of the ascending node over that time, divided by its
+    length in days. The answer is correct if the drift is within {drift_tol} deg/day of {sun_rate} deg/day.
+    Give the inclination in the field initial_orbit.inc_deg, in degrees.

@@ -117,6 +117,8 @@ def grade(instance: Instance, reply: str, job_dir: Optional[Path] = None, *,
         return Grade(Outcome.WRONG_STATUS, 0.0, {"reason": answer.reason})
     if instance.mode == "values":
         return _grade_values(instance, answer)
+    if instance.mode == "orbit" and "inc_deg" not in (answer.initial_orbit or {}):
+        return Grade(Outcome.INVALID_FORMAT, 0.0, {"missing": ["initial_orbit.inc_deg"]})
     if job_dir is not None:
         return _grade_plan(instance, answer, replay_fn(instance, answer, job_dir))
     with tempfile.TemporaryDirectory(prefix="orbitbench_") as tmp:

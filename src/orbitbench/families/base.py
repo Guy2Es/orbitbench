@@ -16,7 +16,7 @@ MODES = ("values", "maneuvers")
 class Instance:
     """One task. `statement` is all the model sees; the other fields are for the grader."""
     family: str
-    mode: str                     # "values" (level 1 or 2) or "maneuvers" (level 3)
+    mode: str                     # "values" (level 1 or 2), "maneuvers" (level 3) or "orbit" (an orbit to design)
     seed: int
     level: int
     statement: str
@@ -52,6 +52,9 @@ def answer_format(mode: str, satellite: str, keys: tuple = ("delta_v_total_m_s",
     if mode == "values":
         shape = ", ".join(f'"{k}": 0.0' for k in keys)
         body = '{"schema_version": "1.0", "status": "solved", "values": {' + shape + '}}'
+    elif mode == "orbit":
+        shape = ", ".join(f'"{k}": 0.0' for k in keys)
+        body = '{"schema_version": "1.0", "status": "solved", "initial_orbit": {' + shape + '}}'
     else:
         body = ('{"schema_version": "1.0", "status": "solved", "maneuvers": [{"epoch_utc": '
                 f'"01 Jan 2026 00:00:00.000", "spacecraft": "{satellite}", "frame": "VNB", '

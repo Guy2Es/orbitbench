@@ -10,10 +10,11 @@ import yaml
 from orbitbench import grader
 from orbitbench.families import FAMILIES
 from orbitbench.harness import task
-from orbitbench.harness.catalog import instances
+from orbitbench.harness.catalog import V01_LINES, instances
 from orbitbench.harness.prompt import system_prompt
 
 TEMPLATES = Path(grader.__file__).parent / "families" / "templates"
+V01_FAMILIES = {family for family, _, _ in V01_LINES}      # the families added after v0.1 are frozen with v1.0
 
 
 def digest(text: str) -> str:
@@ -23,7 +24,7 @@ def digest(text: str) -> str:
 def live() -> dict:
     return {
         "tolerances": {p.stem: yaml.safe_load(p.read_text(encoding="utf-8"))["tolerance"]
-                       for p in sorted(TEMPLATES.glob("*.yaml"))},
+                       for p in sorted(TEMPLATES.glob("*.yaml")) if p.stem in V01_FAMILIES},
         "reward_scale_m_s": grader.REWARD_SCALE_M_S,
         "reward_samples": [round(grader.reward(f, g), 6) for f, g in ((1.0, 0.0), (1.0, 10.0), (0.5, 0.0), (1.0, -3.0))],
         "limits": {"message": task.MESSAGE_LIMIT, "python_timeout_s": task.PYTHON_TIMEOUT_S,
@@ -109,5 +110,5 @@ def test_the_frozen_values_have_not_changed():
     assert live() == FROZEN
 
 
-def test_every_family_has_a_frozen_tolerance_block():
-    assert set(FROZEN["tolerances"]) == set(FAMILIES)
+def test_every_v01_family_has_a_frozen_tolerance_block():
+    assert set(FROZEN["tolerances"]) == V01_FAMILIES <= set(FAMILIES)
