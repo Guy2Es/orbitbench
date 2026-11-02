@@ -24,4 +24,5 @@ orbitbench = ["families/templates/*.yaml"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-markers = ["gmat: needs GMAT R2026a and a gmat-mcp checkout (slow)"]
+markers = ["gmat: needs GMAT R2026a and a gmat-mcp checkout (slow)",
+           "docker: needs Docker and the images of the docker/ folder (slow)"]

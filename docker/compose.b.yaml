@@ -1,0 +1,6 @@
+# Condition B: the Python service only.
+services:
+  default:
+    image: orbitbench-python:0.1
+    init: true
+    network_mode: none

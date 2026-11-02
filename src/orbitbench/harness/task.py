@@ -31,7 +31,7 @@ def build_task(instances: Sequence[Instance], condition: str = "B", *, tools: Op
     if tools is None:
         tools = [python(timeout=PYTHON_TIMEOUT_S)]
     if sandbox == "docker":
-        sandbox = ("docker", str(DOCKER_DIR / "compose.yaml"))
+        sandbox = ("docker", str(DOCKER_DIR / f"compose.{condition.lower()}.yaml"))
     scorer = orbitbench_scorer(replay_fn) if replay_fn else orbitbench_scorer()
     solver = react(prompt=system_prompt(condition), tools=tools, submit=False, attempts=1)
     return Task(dataset=MemoryDataset([sample_of(i) for i in instances]), solver=solver, scorer=scorer,
