@@ -1,0 +1,40 @@
+name: j2_drift
+levels:
+  values: 2
+
+# GMAT's Earth axis is the z axis of EarthMJ2000Eq only close to J2000 (precession and nutation tilt it later),
+# so the epoch stays there: 5 days away from it the replay and a J2-only reference already differ by 1e-3 deg.
+epoch: "01 Jan 2000 12:00:00.000"
+
+ranges:
+  sma_km: [6900.0, 12000.0]
+  ecc: [0.05, 0.3]
+  inc_deg: [20.0, 80.0]
+  raan_deg: [0.0, 360.0]
+  aop_deg: [0.0, 360.0]
+  ta_deg: [0.0, 360.0]
+  dt_days: [2, 10]
+min_periapsis_km: 6700.0
+wrap_margin_deg: 1.0
+min_node_drift_deg: 3.0   # so that a 1 % error on the drift exceeds the tolerance
+
+tolerance:
+  angle_deg: 0.02
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is on an Earth orbit with these elements on {epoch} UTC, in the Earth
+    mean-equator and mean-equinox of J2000 inertial frame: semi-major axis {sma_km} km, eccentricity {ecc},
+    inclination {inc_deg} deg, right ascension of the ascending node {raan_deg} deg, argument of periapsis
+    {aop_deg} deg, true anomaly {ta_deg} deg.
+
+    Physical model, which applies to every number you give: the only forces are the Earth's gravity as a point
+    mass plus its J2 zonal term, with mu = {mu} km^3/s^2, equatorial radius {radius} km and J2 = {j2}. The
+    Earth's rotation axis is the z axis of the inertial frame above. Nothing else acts on the spacecraft.
+    Distances are in km and angles in degrees, unless a field name says otherwise.
+
+    Task: give the osculating right ascension of the ascending node and argument of periapsis of the orbit on
+    {final_epoch} UTC ({dt_days} days later), in the same frame.
+  values: >-
+    Give the two numbers in the fields values.raan_deg and values.aop_deg, each in [0, 360). The answer is
+    correct if each is within {angle_tol} deg of the exact value.
