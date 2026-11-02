@@ -28,6 +28,7 @@ class Instance:
     tolerances: dict = field(default_factory=dict)   # values mode: absolute tolerance per answer field
     params: dict = field(default_factory=dict)
     gravity: dict = field(default_factory=dict)      # Mission Spec gravity of the replay; {} is a point mass
+    well_posed: bool = True       # False: the statement cannot be answered as written, and ill_posed is the right answer
 
     @classmethod
     def from_dict(cls, data: dict) -> "Instance":

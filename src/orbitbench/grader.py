@@ -19,7 +19,8 @@ REWARD_SCALE_M_S = 10.0
 class Outcome(str, Enum):
     SOLVED = "solved"
     INVALID_FORMAT = "invalid_format"            # no usable <final_answer>
-    WRONG_STATUS = "wrong_status"                # ill_posed on a well-posed instance
+    WRONG_STATUS = "wrong_status"                # ill_posed on a well-posed instance: a false alarm
+    MISSED_TRAP = "missed_trap"                  # a value or a plan given for a statement that cannot be answered
     INVALID_PLAN = "invalid_plan"                # refused before replay: order, name, epoch, spec
     RUN_FAILED = "run_failed"                    # GMAT failed, timed out or crashed on the plan
     REPLAY_ERROR = "replay_error"                # the benchmark's own replay is inconsistent: investigate
@@ -118,6 +119,9 @@ def grade(instance: Instance, reply: str, job_dir: Optional[Path] = None, *,
         answer = extract_answer(reply)
     except AnswerError as exc:
         return Grade(Outcome.INVALID_FORMAT, 0.0, {"label": exc.label, "message": str(exc)[:300]})
+    if not instance.well_posed:
+        gave_value = answer.status == "solved" or answer.values or answer.maneuvers or answer.initial_orbit
+        return Grade(Outcome.MISSED_TRAP, 0.0, {"status": answer.status}) if gave_value else Grade(Outcome.SOLVED, 1.0)
     if answer.status != "solved":
         return Grade(Outcome.WRONG_STATUS, 0.0, {"reason": answer.reason})
     if instance.mode == "values":
