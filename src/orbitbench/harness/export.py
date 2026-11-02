@@ -23,6 +23,9 @@ def rows_of(log: EvalLog, condition: str) -> list[dict]:
             "solved": score.value["solved"] if score else 0.0, "reward": score.value["reward"] if score else 0.0,
             "assistant_turns": sum(m.role == "assistant" for m in sample.messages),
             "tool_calls": sum(m.role == "tool" for m in sample.messages),
+            # the calls to the tools of the gmat server: every tool but the Python interpreter
+            "gmat_calls": sum(tc.function != "python" for m in sample.messages if m.role == "assistant"
+                              for tc in m.tool_calls or []),
             # input_tokens excludes the cached ones: the whole input is the three columns together
             "input_tokens": sum(u.input_tokens for u in usage),
             "cache_write_tokens": sum(u.input_tokens_cache_write or 0 for u in usage),

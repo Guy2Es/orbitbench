@@ -24,6 +24,8 @@ def parse(argv=None) -> argparse.Namespace:
                      help="use the Message Batches API: half the price, but every turn waits for its batch")
     report = sub.add_parser("report", help="table, token bill and failures to audit, from the episodes.jsonl of runs")
     report.add_argument("dirs", nargs="+", type=Path)
+    analyze = sub.add_parser("analyze", help="success rates with intervals and the C minus B difference, from runs")
+    analyze.add_argument("dirs", nargs="+", type=Path)
     return p.parse_args(argv)
 
 
@@ -54,6 +56,12 @@ def report(args: argparse.Namespace) -> int:
     return 0
 
 
+def analyze(args: argparse.Namespace) -> int:
+    from orbitbench.harness.analysis import analyze as render_analysis
+    print(render_analysis(args.dirs))
+    return 0
+
+
 def main(argv=None) -> int:
     args = parse(argv)
-    return run(args) if args.command == "run" else report(args)
+    return {"run": run, "report": report, "analyze": analyze}[args.command](args)
