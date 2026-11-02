@@ -86,4 +86,4 @@ def test_the_command_line_parses_a_run():
     assert parse(["run", "--condition", "B", "--model", "m", "--log-dir", "x", "--batch"]).batch
     assert parse(["report", "runs/a", "runs/b"]).dirs == [Path("runs/a"), Path("runs/b")]
     with pytest.raises(SystemExit):
-        parse(["run", "--condition", "A", "--model", "m", "--log-dir", "x"])
+        parse(["run", "--condition", "D", "--model", "m", "--log-dir", "x"])

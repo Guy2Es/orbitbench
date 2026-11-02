@@ -42,10 +42,12 @@ def build_task(instances: Sequence[Instance], condition: str = "B", *, tools: Op
     """One task for `condition`. `tools`, `sandbox` (None for none) and `replay_fn` are for tests.
     `token_limit` caps the tokens of one episode (a spending guard, not part of the declared limits).
     `epochs` plays every instance that many times, to measure reliability."""
-    if condition not in ("B", "C"):
+    if condition not in ("A", "B", "C"):
         raise ValueError(f"unknown condition {condition!r}")
-    if tools is None:
-        tools = [python(timeout=PYTHON_TIMEOUT_S)] + ([gmat_server()] if condition == "C" else [])
+    if tools is None:    # condition A has no tool at all: the model answers from what it knows
+        tools = [] if condition == "A" else [python(timeout=PYTHON_TIMEOUT_S)] + ([gmat_server()] if condition == "C" else [])
+    if condition == "A" and sandbox == "docker":
+        sandbox = None
     if sandbox == "docker":
         sandbox = ("docker", str(DOCKER_DIR / f"compose.{condition.lower()}.yaml"))
     scorer = orbitbench_scorer(replay_fn) if replay_fn else orbitbench_scorer()

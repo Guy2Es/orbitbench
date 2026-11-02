@@ -52,7 +52,7 @@ def test_both_conditions_share_the_prompt_but_for_the_tools():
     b, c = system_prompt("B").split("\n\n"), system_prompt("C").split("\n\n")
     assert b[0] == c[0] and b[1] != c[1]
     with pytest.raises(ValueError):
-        build_task([], "A")
+        build_task([], "D")
 
 
 def test_values_replies_are_scored_without_gmat(tmp_path):
@@ -91,3 +91,20 @@ def test_the_metrics_average_solved_and_reward(tmp_path):
     log = run(insts, [reference_reply(insts[0]), "nothing"], tmp_path=tmp_path)
     means = {s.name: s.metrics["mean"].value for s in log.results.scores}
     assert means == {"solved": pytest.approx(0.5), "reward": pytest.approx(0.5)}
+
+
+def test_condition_a_has_no_tool_and_no_sandbox():
+    task = build_task(instances(first_seed=0)[:1], "A")
+    assert task.sandbox is None
+    assert "no tools" in system_prompt("A")
+
+
+def test_condition_a_is_scored_on_the_reply_alone(tmp_path):
+    insts = [i for i in instances(max_level=2) if i.mode == "values"][:2]
+    log = run(insts, [reference_reply(i) for i in insts], condition="A", tmp_path=tmp_path)
+    assert all(s.scores["orbitbench_scorer"].value["solved"] == 1.0 for s in log.samples)
+
+
+def test_max_level_keeps_the_low_levels_only():
+    assert {i.level for i in instances(max_level=2)} <= {1, 2}
+    assert len(instances(max_level=2)) < len(instances())

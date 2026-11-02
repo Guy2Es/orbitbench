@@ -8,6 +8,7 @@ BASE = (
 )
 
 TOOLS = {
+    "A": "You have no tools: no interpreter, no calculator, no network. Work the answer out in your reply.",
     "B": "You have a Python interpreter with numpy, scipy and sgp4. It has no network access.",
     "C": ("You have a Python interpreter with numpy, scipy and sgp4, and no network access. You also have "
           "the tools of a GMAT mission-analysis server, which can propagate orbits and run differential "
