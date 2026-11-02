@@ -1,0 +1,36 @@
+name: tle_state
+levels:
+  values: 2
+
+epoch: "01 Jan 2026 00:00:00.000"
+
+ranges:
+  day_of_year: [1.0, 60.0]
+  mean_motion_rev_day: [11.0, 14.5]
+  ecc: [0.0005, 0.03]
+  inc_deg: [20.0, 100.0]
+  raan_deg: [0.0, 360.0]
+  aop_deg: [0.0, 360.0]
+  mean_anomaly_deg: [0.0, 360.0]
+  minutes_after_epoch: [60.0, 2880.0]
+  bstar_mantissa: [10000, 99999]
+  bstar_exponent: [-5, -3]
+min_periapsis_km: 6600.0
+
+tolerance:
+  position_km: 1.0
+  velocity_km_s: 0.001
+
+statement:
+  common: >-
+    A satellite is described by this two-line element set (TLE):
+
+    {tle}
+
+    Task: using the SGP4 propagator with the standard TLE model (WGS-72 constants), give the position and
+    velocity of the satellite {minutes} minutes after the epoch of the TLE, in the TEME (true equator, mean
+    equinox) frame that SGP4 itself returns. Do not convert to any other frame.
+  values: >-
+    Give the six numbers in the fields values.x_km, values.y_km, values.z_km, values.vx_km_s, values.vy_km_s
+    and values.vz_km_s, in km and km/s. The answer is correct if each position component is within {pos_tol} km
+    and each velocity component within {vel_tol} km/s of the SGP4 value.
