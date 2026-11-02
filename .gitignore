@@ -10,3 +10,4 @@ logs/
 .env
 private/
 docker/app/
+runs/

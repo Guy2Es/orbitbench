@@ -17,9 +17,27 @@ The hypotheses are recorded in [docs/hypotheses.md](docs/hypotheses.md) before a
 
 ```
 pip install -e ".[dev]"
-python -m pytest -m "not gmat"    # no GMAT needed
+python -m pytest -m "not gmat and not docker"   # no GMAT, no Docker needed
 python -m pytest -m gmat          # replays plans in GMAT (GMAT_INSTALL and gmat-mcp required)
+python -m pytest -m docker        # the sandboxes of conditions B and C (images below required)
 ```
+
+## Running a model
+
+The harness is an [Inspect](https://inspect.aisi.org.uk) task. Condition B gives the model a Python interpreter
+(numpy, scipy, sgp4) in a sandbox without network. Condition C adds the gmat-mcp server in a second sandbox;
+the interpreter cannot reach GMAT except through that server. The reply is graded on the host by replay in GMAT.
+
+```
+pip install -e ".[harness]"
+docker build -f docker/python.Dockerfile -t orbitbench-python:0.1 docker
+sh docker/build_gmat.sh           # needs the gmat-worker image of gmat-mcp (docker/worker/Dockerfile)
+python -m orbitbench.harness run --condition C --model anthropic/claude-haiku-5-5 --log-dir runs/c-haiku
+```
+
+Relaunching the same command resumes an interrupted run. Each run writes Inspect logs (full transcripts) and
+`episodes.jsonl`, one row per episode. The limits (messages, tool and GMAT timeouts) are constants in
+`orbitbench/harness/task.py`, the same for every model.
 
 ## License
 
