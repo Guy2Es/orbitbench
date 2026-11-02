@@ -31,4 +31,31 @@ family). Questions 2 and 3 are reported separately, with their own intervals.
 
 ## Amendments
 
-None yet.
+### 2 November 2026: what v0.1 showed, and what v1.0 declares before any v1.0 run
+
+The text above is unchanged. This entry is written before any episode of v1.0 has run.
+
+**Observation on v0.1.** Claude Haiku 5.5 on the test seeds solved 53 of 61 instances in condition B and 56 of 61 in
+condition C; the paired difference C minus B was +0.049 with a 95 % interval from -0.066 to +0.164 (it contains zero).
+On a development comparison, Claude Sonnet 5.5 solved 22 of 22 episodes. In condition C, 9 of 61 episodes called a GMAT
+tool; the others solved the task in Python. The v0.1 tasks (impulsive burns, point mass or J2) have closed or easily
+integrated solutions, so v0.1 cannot separate the models at the top, nor test H1 and H3.
+
+**What v1.0 adds, to make H1 and H3 testable.** Level 4 (a sun-synchronous orbit, rendezvous phasing), ill-posed
+statements with well-posed twins, a measure of false claims, finite burns, condition A (no tool) at levels 1 and 2, and
+k attempts per instance. The hypotheses H1 to H6 and the primary comparison stay as written above.
+
+**Declared for the v1.0 run.**
+- Models: Claude Haiku 5.5 and Claude Sonnet 5.5; Claude Opus 5.5 only on a subset of instances, if the budget allows.
+- Attempts: k = 3 per instance at the provider's default temperature. If the measured cost forces a smaller k, the
+  change is added here with its date.
+- Budget: about 30 USD of API for the full run, with a ceiling per run and a token guard per episode (at least
+  1 000 000 tokens, reported with the results, not a declared limit).
+- Test seeds: a new range, drawn before the run and kept out of the repository until the results are published.
+  The v0.1 test seeds are not reused.
+- Success: every constraint of the reply met, as in v0.1. Reliability (H4): the share of instances solved in all k
+  attempts. False claims (H5): counted by the three rules of the plan, and only after the detector has been checked by
+  hand on an annotated sample.
+- The v1.0 tolerances, reward, limits and prompts are frozen after the calibration pilot, in `freeze.md`, before the run.
+- Results are reported by family and by level with intervals, including null and unfavourable ones. Level-wise
+  intervals are exploratory.
