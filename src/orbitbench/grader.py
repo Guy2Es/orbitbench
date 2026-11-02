@@ -120,7 +120,7 @@ def grade(instance: Instance, reply: str, job_dir: Optional[Path] = None, *,
     except AnswerError as exc:
         return Grade(Outcome.INVALID_FORMAT, 0.0, {"label": exc.label, "message": str(exc)[:300]})
     if not instance.well_posed:
-        gave_value = answer.status == "solved" or answer.values or answer.maneuvers or answer.initial_orbit
+        gave_value = answer.status == "solved" or answer.values or answer.maneuvers or answer.finite_burns or answer.initial_orbit
         return Grade(Outcome.MISSED_TRAP, 0.0, {"status": answer.status}) if gave_value else Grade(Outcome.SOLVED, 1.0)
     if answer.status != "solved":
         return Grade(Outcome.WRONG_STATUS, 0.0, {"reason": answer.reason})

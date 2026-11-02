@@ -37,6 +37,21 @@ class Maneuver(_Strict):
         return value
 
 
+class FiniteBurn(_Strict):
+    """Continuous thrust of the spacecraft's thruster from `epoch_utc` for `duration_s`, along a VNB direction."""
+    epoch_utc: str
+    spacecraft: str
+    duration_s: float = Field(gt=0)
+    direction: Literal["prograde", "retrograde", "normal", "antinormal"] = "prograde"
+
+    @field_validator("epoch_utc")
+    @classmethod
+    def _epoch_format(cls, value: str) -> str:
+        if not re.fullmatch(EPOCH_PATTERN, value):
+            raise ValueError("epoch_utc must look like '01 Jan 2026 00:00:00.000'")
+        return value
+
+
 class Claims(_Strict):
     verified: bool
     method: Optional[str] = None
@@ -48,6 +63,7 @@ class FinalAnswer(_Strict):
     values: dict[str, float] = Field(default_factory=dict)
     initial_orbit: Optional[dict] = None
     maneuvers: list[Maneuver] = Field(default_factory=list)
+    finite_burns: list[FiniteBurn] = Field(default_factory=list)
     reason: Optional[str] = None
     claims: Optional[Claims] = None
 

@@ -28,6 +28,7 @@ class Instance:
     tolerances: dict = field(default_factory=dict)   # values mode: absolute tolerance per answer field
     params: dict = field(default_factory=dict)
     gravity: dict = field(default_factory=dict)      # Mission Spec gravity of the replay; {} is a point mass
+    propulsion: dict = field(default_factory=dict)   # dry mass, tank and thruster, for a plan that uses finite burns
     well_posed: bool = True       # False: the statement cannot be answered as written, and ill_posed is the right answer
 
     @classmethod
@@ -60,6 +61,16 @@ def answer_format(mode: str, satellite: str, keys: tuple = ("delta_v_total_m_s",
         body = ('{"schema_version": "1.0", "status": "solved", "maneuvers": [{"epoch_utc": '
                 f'"01 Jan 2026 00:00:00.000", "spacecraft": "{satellite}", "frame": "VNB", '
                 '"delta_v_km_s": [0.0, 0.0, 0.0]}]}')
+    return ("End your reply with exactly one block <final_answer>...</final_answer> that holds a single JSON "
+            "object. Optional fields: reason (why, if status is 'ill_posed'), claims "
+            '({"verified": true or false, "method": "..."}) to say whether and how you checked your answer. '
+            f"Example of the shape:\n<final_answer>{body}</final_answer>")
+
+
+def finite_answer_format(satellite: str) -> str:
+    """The reply format of a plan of finite burns."""
+    body = ('{"schema_version": "1.0", "status": "solved", "finite_burns": [{"epoch_utc": '
+            f'"01 Jan 2026 00:00:00.000", "spacecraft": "{satellite}", "duration_s": 0.0, "direction": "prograde"}}]}}')
     return ("End your reply with exactly one block <final_answer>...</final_answer> that holds a single JSON "
             "object. Optional fields: reason (why, if status is 'ill_posed'), claims "
             '({"verified": true or false, "method": "..."}) to say whether and how you checked your answer. '

@@ -1,0 +1,47 @@
+name: finite_burn_raise
+levels:
+  finite: 4
+
+epoch: "01 Jan 2026 00:00:00.000"
+final_margin_s: 600
+
+ranges:
+  r1_km: [6900.0, 8000.0]
+  inc_deg: [0.0, 98.0]
+  raan_deg: [0.0, 360.0]
+  ta_deg: [0.0, 360.0]
+  apoapsis_factor: [1.4, 1.8]
+  thrust_n: [400.0, 500.0]
+  isp_s: [300.0, 330.0]
+dry_mass_kg: 850.0
+fuel_kg: 600.0
+max_fuel_fraction: 0.8      # the reference burn uses at most this share of the tank
+
+tolerance:
+  apoapsis_rel: 0.003
+  inc_deg: 0.001
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is on a circular Earth orbit of radius {r1_km} km and inclination {inc_deg} deg,
+    with right ascension of the ascending node {raan_deg} deg and true anomaly {ta_deg} deg, on {epoch} UTC, in the
+    Earth mean-equator and mean-equinox of J2000 inertial frame. Its dry mass is {dry_kg} kg and its tank holds
+    {fuel_kg} kg of propellant. It has one thruster of constant thrust {thrust_n} N and specific impulse {isp_s} s,
+    which burns propellant at thrust / (Isp * g0) with g0 = {g0} m/s^2, and whose mass is lost as it burns.
+
+    Physical model, which applies to every number you give: the Earth is a point mass with
+    mu = {mu} km^3/s^2 and nothing else acts on the spacecraft but its thruster. Distances are in km, velocities in
+    km/s and angles in degrees, unless a field name says otherwise.
+
+    Task: raise the apoapsis radius of the orbit to {ra_km} km with one burn of the thruster, which is not
+    impulsive: it thrusts for the duration you choose.
+  finite: >-
+    Give the burn in the field finite_burns: one entry per burn, in chronological order. Each entry has epoch_utc
+    (format 'DD Mon YYYY HH:MM:SS.mmm', UTC, to the millisecond) for the start of the thrust, spacecraft
+    ('{satellite}'), duration_s (seconds of thrust) and direction (one of prograde, retrograde, normal, antinormal:
+    the thrust direction in the velocity-normal-binormal axes, prograde being along the velocity). The thrust must
+    end by the final epoch.
+
+    Your plan is replayed in GMAT R2026a from the initial state, with the model above and a Prince-Dormand 7(8)
+    integrator of accuracy 1e-12, and the final state is checked on {final_epoch} UTC: the apoapsis radius within
+    {ra_tol_km} km of {ra_km} km and the inclination within {inc_tol} deg of {inc_deg} deg.

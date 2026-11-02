@@ -19,6 +19,7 @@ from orbitbench.families.base import Instance
 MAX_MANEUVERS = 10
 EPOCH_TOLERANCE_MS = 1
 PROPAGATOR, FORCE_MODEL = "Prop", "FM"
+THRUSTER = "Thr"
 
 
 class PlanError(ValueError):
@@ -53,33 +54,60 @@ def orbit_instance(instance: Instance, answer: FinalAnswer) -> Instance:
     return dataclasses.replace(instance, initial_state={**instance.initial_state, "inc_deg": float(inc)})
 
 
+def _events(answer: FinalAnswer) -> list:
+    """The impulsive and the finite burns of the answer as (kind, index, burn), each list in the order given."""
+    return ([("impulsive", i, m) for i, m in enumerate(answer.maneuvers, start=1)]
+            + [("finite", i, b) for i, b in enumerate(answer.finite_burns, start=1)])
+
+
 def build_mission(instance: Instance, answer: FinalAnswer) -> dict:
     """The Mission Spec that flies the plan. Raises PlanError for a plan that cannot be replayed."""
-    if len(answer.maneuvers) > MAX_MANEUVERS:
+    if len(answer.maneuvers) + len(answer.finite_burns) > MAX_MANEUVERS:
         raise PlanError(f"more than {MAX_MANEUVERS} maneuvers")
+    if answer.finite_burns and not instance.propulsion:
+        raise PlanError("this spacecraft has no thruster: finite burns are not available")
     start, end = parse_epoch(instance.epoch), parse_epoch(instance.final_epoch)
-    sequence, current = [], start
-    for i, m in enumerate(answer.maneuvers, start=1):
+    timed = []
+    for kind, i, m in _events(answer):
+        label = f"maneuver {i}" if kind == "impulsive" else f"finite burn {i}"
         if m.spacecraft != instance.satellite:
-            raise PlanError(f"maneuver {i}: the spacecraft is {instance.satellite!r}, not {m.spacecraft!r}")
+            raise PlanError(f"{label}: the spacecraft is {instance.satellite!r}, not {m.spacecraft!r}")
         try:
-            when = parse_epoch(m.epoch_utc)
+            timed.append((parse_epoch(m.epoch_utc), kind, i, m))
         except ValueError as exc:
-            raise PlanError(f"maneuver {i}: {exc}") from None
+            raise PlanError(f"{label}: {exc}") from None
+    last = {}
+    for when, kind, i, m in timed:   # within one list the dates must not go back, as in the v0.1
+        if kind in last and when < last[kind]:
+            raise PlanError(f"{'maneuver' if kind == 'impulsive' else 'finite burn'} {i} is dated before the previous one")
+        last[kind] = when
+    sequence, current = [], start
+    for when, kind, i, m in sorted(timed, key=lambda t: t[0]):
+        label = f"maneuver {i}" if kind == "impulsive" else f"finite burn {i}"
         if when < current:
-            raise PlanError(f"maneuver {i} is dated before {'the previous one' if i > 1 else 'the initial epoch'}")
+            raise PlanError(f"{label} is dated before {'the end of the previous burn' if sequence else 'the initial epoch'}")
         if when > end:
-            raise PlanError(f"maneuver {i} is dated after the final epoch")
+            raise PlanError(f"{label} is dated after the final epoch")
         if when > current:   # never to a date that is not strictly later: GMAT would run to its 30-day bound
             sequence.append(_propagate(when))
             current = when
-        sequence.append({"type": "impulsive_burn", "name": f"M{i}", "spacecraft": instance.satellite,
-                         "frame": m.frame, "delta_v_km_s": list(m.delta_v_km_s)})
+        if kind == "impulsive":
+            sequence.append({"type": "impulsive_burn", "name": f"M{i}", "spacecraft": instance.satellite,
+                             "frame": m.frame, "delta_v_km_s": list(m.delta_v_km_s)})
+        else:
+            if when + round(m.duration_s * 1000) > end:
+                raise PlanError(f"{label} ends after the final epoch")
+            sequence.append({"type": "finite_burn", "name": f"F{i}", "spacecraft": instance.satellite,
+                             "thruster": THRUSTER, "propagator": PROPAGATOR, "duration_s": m.duration_s,
+                             "direction": m.direction})
+            current = when + round(m.duration_s * 1000)
     if end > current:
         sequence.append(_propagate(end))
+    spacecraft = {"name": instance.satellite, "state": instance.initial_state}
+    if instance.propulsion:
+        spacecraft.update(instance.propulsion)
     return {"spec_version": "1", "name": f"{instance.family}_{instance.seed}", "central_body": "Earth",
-            "epoch": instance.epoch,
-            "spacecraft": [{"name": instance.satellite, "state": instance.initial_state}],
+            "epoch": instance.epoch, "spacecraft": [spacecraft],
             "force_models": [{"name": FORCE_MODEL, **({"gravity": instance.gravity} if instance.gravity else {})}],
             "propagators": [{"name": PROPAGATOR, "force_model": FORCE_MODEL, "integrator": INTEGRATOR,
                              "accuracy": ACCURACY}],
