@@ -82,7 +82,8 @@ def test_the_command_line_parses_a_run():
                   "--families", "hohmann", "--first-seed", "100", "--max-samples", "2", "--limit", "5",
                   "--per-line", "2", "--token-limit", "50000"])
     assert (args.condition, args.families, args.first_seed, args.max_samples, args.limit) == ("C", ["hohmann"], 100, 2, 5)
-    assert (args.per_line, args.token_limit) == (2, 50000)
+    assert (args.per_line, args.token_limit, args.batch) == (2, 50000, False)
+    assert parse(["run", "--condition", "B", "--model", "m", "--log-dir", "x", "--batch"]).batch
     assert parse(["report", "runs/a", "runs/b"]).dirs == [Path("runs/a"), Path("runs/b")]
     with pytest.raises(SystemExit):
         parse(["run", "--condition", "A", "--model", "m", "--log-dir", "x"])
