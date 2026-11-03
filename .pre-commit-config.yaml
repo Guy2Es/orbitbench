@@ -1,0 +1,9 @@
+# Install with: pip install pre-commit && pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: check-secrets
+        name: scan staged files for credentials
+        entry: python scripts/check_secrets.py --staged
+        language: system
+        pass_filenames: false

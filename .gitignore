@@ -11,3 +11,14 @@ logs/
 private/
 docker/app/
 runs/
+.env.*
+!.env.example
+.claude/
+.claude.json
+*credentials*
+*.pem
+*.key
+tmp/
+.mypy_cache/
+.ruff_cache/
+node_modules/
