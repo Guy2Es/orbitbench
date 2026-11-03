@@ -29,6 +29,8 @@ LEVEL_FOUR_LINES = (
 TRAP_LINES = tuple((f"trap_{kind}", "values", 3) for kind in ("radius", "isp", "period"))
 TWIN_LINES = tuple((f"{family}_twin", mode, n) for family, mode, n in TRAP_LINES)
 V10_LINES = V01_LINES + LEVEL_FOUR_LINES + TRAP_LINES
+# Three trivial questions, played with every run and never counted in its results: a failure means a broken harness.
+CANARY_LINES = (("canary", "values", 3),)
 
 
 def instances(lines=V01_LINES, first_seed: int = 0, per_line: int | None = None,

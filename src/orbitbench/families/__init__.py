@@ -1,6 +1,7 @@
 # src/orbitbench/families/__init__.py
 """The task families, by name."""
 from orbitbench.families.base import Family, Instance
+from orbitbench.families.canary import CanaryFamily
 from orbitbench.families.circularize_plan import CircularizePlanFamily
 from orbitbench.families.finite_burn_raise import FiniteBurnRaiseFamily
 from orbitbench.families.frame_trap import FrameTrapFamily
@@ -21,7 +22,7 @@ FAMILIES = {family.name: family for family in (HohmannFamily(), PlaneChangeDvFam
                                                        CircularizePlanFamily(), HohmannOrBiellipticPlanFamily(),
                                                        PlaneChangeBudgetPlanFamily(), FrameTrapFamily(),
                                                        GuessTrapTransferFamily(), SunSynchronousFamily(),
-                                                       RendezvousPhasingFamily(), FiniteBurnRaiseFamily(),
+                                                       RendezvousPhasingFamily(), FiniteBurnRaiseFamily(), CanaryFamily(),
                                                        *(IllPosedFamily(k, w) for k in KINDS for w in (False, True)))}
 
 

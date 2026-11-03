@@ -4,9 +4,9 @@ python -m orbitbench.harness report runs/pilot-b runs/pilot-c"""
 import argparse
 from pathlib import Path
 
-from orbitbench.harness.catalog import TWIN_LINES, V01_LINES, V10_LINES, instances
+from orbitbench.harness.catalog import CANARY_LINES, TWIN_LINES, V01_LINES, V10_LINES, instances
 
-SUITES = {"v01": V01_LINES, "v10": V10_LINES, "twins": TWIN_LINES}
+SUITES = {"v01": V01_LINES, "v10": V10_LINES, "twins": TWIN_LINES, "canary": CANARY_LINES}
 
 
 def parse(argv=None) -> argparse.Namespace:
@@ -16,7 +16,7 @@ def parse(argv=None) -> argparse.Namespace:
     run.add_argument("--condition", choices=["A", "B", "C"], required=True)
     run.add_argument("--model", required=True, help="an Inspect model name, e.g. anthropic/claude-haiku-5-5")
     run.add_argument("--log-dir", required=True, type=Path, help="one folder per run: relaunching resumes it")
-    run.add_argument("--suite", choices=["v01", "v10", "twins"], default="v01",
+    run.add_argument("--suite", choices=["v01", "v10", "twins", "canary"], default="v01",
                      help="v01 (61 instances, frozen), v10 (v0.1 lines plus levels 4 and traps) or the well-posed twins")
     run.add_argument("--families", nargs="*", help="only these families (default: all of v0.1)")
     run.add_argument("--first-seed", type=int, default=0, help="each line uses seeds first-seed .. first-seed+n-1")

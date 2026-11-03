@@ -1,0 +1,26 @@
+name: canary
+
+epoch: "01 Jan 2026 00:00:00.000"
+final_margin_s: 600
+
+ranges:
+  r_km: [6700.0, 42164.0]
+
+tolerance:
+  relative: 0.001
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is on a circular Earth orbit of radius {r_km} km.
+
+    Physical model, which applies to every number you give: the Earth is a point mass with
+    mu = {mu} km^3/s^2 and nothing else acts on the spacecraft.
+  circular_speed: >-
+    Task: give the speed of the spacecraft, in m/s, in the field values.{key}. It is correct if it is within
+    {rel_tol_pct} % of the exact value.
+  period: >-
+    Task: give the orbital period of the spacecraft, in seconds, in the field values.{key}. It is correct if it
+    is within {rel_tol_pct} % of the exact value.
+  escape_speed: >-
+    Task: give the speed the spacecraft would need at this radius to escape the Earth, in m/s, in the field
+    values.{key}. It is correct if it is within {rel_tol_pct} % of the exact value.
