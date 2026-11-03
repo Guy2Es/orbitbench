@@ -17,6 +17,15 @@ never by seed.
 | C | `plane_change_dv` | `values_mismatch` | model | arithmetic slip: mu / r is written as 12 877 instead of 12.877 km^2/s^2, so the velocity is 113 km/s |
 | C | `state_at_date` | `values_mismatch` | model | independent integration matches the reference |
 
+## Claude Sonnet 5.5 (same instances, same frozen values)
+
+Two episodes of 122 were not solved, both in condition C and both read in their transcripts.
+
+| Condition | Line | Grader label | Cause | Evidence |
+|---|---|---|---|---|
+| C | `state_at_date` | `values_mismatch` | model | the reply propagates the point-mass orbit with Kepler's equation in Python, the method the statement asks for, and writes numbers thousands of km from the reference; the reference was checked against an independent integration for this family; the slip was not located |
+| C | `tle_state` | `invalid_format` | model | the `<final_answer>` block closes its object after `values`, then continues with `"claims"`: the JSON is invalid (extra data), so the grader rejects it as the format requires |
+
 ## Findings
 
 - None of the 13 failures comes from a defect of a task, of the grader, of a reference or of the harness. Nothing was

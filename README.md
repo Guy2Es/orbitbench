@@ -43,25 +43,29 @@ Relaunching the same command resumes an interrupted run. Each run writes Inspect
 
 ## Results so far
 
-Claude Haiku 5.5, one attempt per instance, 61 instances per condition, on test seeds that were not used to
-build or tune anything. Intervals are 95 % Wilson intervals; the difference is paired by instance (bootstrap).
+Claude Haiku 5.5 and Claude Sonnet 5.5, one attempt per instance, 61 instances per condition, on test seeds that
+were not used to build or tune anything. Intervals are 95 % Wilson intervals; the difference is paired and uses a
+hierarchical bootstrap (families, then instances).
 
 | Condition | Solved | Interval | Mean reward |
 |---|---|---|---|
 | B, Python alone | 53 / 61 | 76 % to 93 % | 0.89 |
 | C, Python and gmat-mcp | 56 / 61 | 82 % to 96 % | 0.91 |
 
-C minus B: +0.049 solved (interval -0.066 to +0.164), +0.020 reward (interval -0.085 to +0.129). The interval
-contains zero: this run does not show that gmat-mcp helps or hurts. In C, 9 of 61 episodes called a GMAT tool; the
+Claude Sonnet 5.5:
+
+| Condition | Solved | Interval | Mean reward |
+|---|---|---|---|
+| B, Python alone | 61 / 61 | 94 % to 100 % | 1.00 |
+| C, Python and gmat-mcp | 59 / 61 | 89 % to 99 % | 0.97 |
+
+C minus B, Haiku: +0.049 solved (interval -0.089 to +0.210). Sonnet: -0.033 (interval -0.111 to 0.000). The
+intervals contain zero or touch it: this run does not show that gmat-mcp helps or hurts. v0.1 is saturated for Sonnet. In C, 9 of 61 Haiku episodes called a GMAT tool; the
 others solved the task in Python, because the v0.1 tasks (impulsive burns, point mass or J2) have closed or easily
 integrated solutions. Tasks that need the simulation are planned for v1.0.
 
-The 13 failures were read one by one ([docs/test_audit.md](docs/test_audit.md)): all are mistakes of the model, none
+The 15 failures (13 Haiku, 2 Sonnet) were read one by one ([docs/test_audit.md](docs/test_audit.md)): all are mistakes of the model, none
 a defect of the benchmark. Two C episodes ended on a spending guard of 1 000 000 tokens, not on a declared limit.
-
-A second model (Claude Sonnet 5.5) is not in these results yet: the API usage limit was reached before its runs.
-A first comparison on 11 development instances (not the test seeds) solved 22 of 22 episodes for Sonnet and 20 of 22
-for Haiku.
 
 Reproduce the table from the run folders: `python -m orbitbench.harness analyze runs/b runs/c`.
 
