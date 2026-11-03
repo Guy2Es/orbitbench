@@ -8,7 +8,18 @@ from inspect_ai.log import EvalLog
 from orbitbench.harness.claims import answer_of, false_claims, trace_of
 
 
+def settings_of(log: EvalLog) -> dict:
+    """What the run was played with, so that a row says it: sampling settings the provider was given (None is unset;
+    an unset temperature is the provider's default, written as such), the declared limits and the harness version."""
+    gen, cfg = log.eval.model_generate_config, log.eval.config
+    return {"temperature": "provider_default" if gen.temperature is None else gen.temperature,
+            "top_p": gen.top_p, "max_tokens": gen.max_tokens, "reasoning_effort": gen.reasoning_effort,
+            "batch": bool(gen.batch), "message_limit": cfg.message_limit, "token_limit": cfg.token_limit,
+            "epochs": cfg.epochs, "inspect_ai": log.eval.packages.get("inspect_ai")}
+
+
 def rows_of(log: EvalLog, condition: str) -> list[dict]:
+    settings = settings_of(log)
     rows = []
     for sample in log.samples or []:
         family, mode, seed = sample.id.split(":")
@@ -22,7 +33,7 @@ def rows_of(log: EvalLog, condition: str) -> list[dict]:
         usage = list((sample.model_usage or {}).values())
         rows.append({
             "id": sample.id, "family": family, "mode": mode, "seed": int(seed), "epoch": sample.epoch, "condition": condition,
-            "model": log.eval.model, "outcome": outcome,
+            "model": log.eval.model, **settings, "outcome": outcome,
             "solved": score.value["solved"] if score else 0.0, "reward": score.value["reward"] if score else 0.0,
             "assistant_turns": sum(m.role == "assistant" for m in sample.messages),
             "tool_calls": sum(m.role == "tool" for m in sample.messages),

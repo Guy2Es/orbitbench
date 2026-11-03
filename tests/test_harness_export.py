@@ -35,6 +35,15 @@ def test_a_row_carries_the_instance_the_label_and_the_cost(tmp_path):
     assert all(r["condition"] == "B" and r["model"] == MODEL and r["assistant_turns"] == 1 for r in rows)
 
 
+def test_a_row_says_what_the_run_was_played_with(tmp_path):
+    inst = next(i for i in instances() if i.mode == "values")
+    [log] = logs_for([inst], ["a"], tmp_path, message_limit=7, token_limit=123456)
+    [row] = rows_of(log, "B")
+    assert row["temperature"] == "provider_default" and row["batch"] is False
+    assert (row["message_limit"], row["token_limit"], row["epochs"]) == (7, 123456, 1)
+    assert row["inspect_ai"] and row["max_tokens"] is None
+
+
 def test_a_reply_cut_by_the_message_limit_is_labelled_limit(tmp_path):
     inst = next(i for i in instances() if i.mode == "values")
     # tools=[] so the model can only talk; a limit of 1 message ends the episode before the model answers

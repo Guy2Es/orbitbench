@@ -41,6 +41,11 @@ Relaunching the same command resumes an interrupted run. Each run writes Inspect
 `episodes.jsonl`, one row per episode. The limits (messages, tool and GMAT timeouts) are constants in
 `orbitbench/harness/task.py`, the same for every model.
 
+Each row also records what the episode was played with: the temperature (`provider_default` when none is set, which
+is the case for every run so far: no sampling setting is passed to any model), `top_p`, `max_tokens`,
+`reasoning_effort`, whether the batch API was used, the message and token limits, the number of epochs and the
+Inspect version. Two runs are comparable only if these columns match.
+
 ## Results so far
 
 Claude Haiku 5.5 and Claude Sonnet 5.5, one attempt per instance, 61 instances per condition, on test seeds that
