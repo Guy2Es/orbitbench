@@ -38,10 +38,13 @@ def samples(run_dirs: list[Path]):
 
 def render(item: dict, rid: str) -> str:
     out = [f"## {rid}", "", "**Statement**", "", clip(item["statement"], 2500), "", "**Episode**", ""]
-    for m in item["messages"][1:]:
+    last = max(i for i, m in enumerate(item["messages"]) if m.role == "assistant")
+    for i, m in enumerate(item["messages"]):
+        if i == 0:
+            continue
         if m.role == "assistant":
             calls = "".join(f"\n  - call `{tc.function}`: {clip(json.dumps(tc.arguments), 400)}" for tc in m.tool_calls or [])
-            out.append(f"- assistant: {clip(m.text)}{calls}")
+            out.append(f"- assistant: {m.text.strip() if i == last else clip(m.text)}{calls}")   # the last reply, whole
         elif m.role == "tool":
             out.append(f"- tool result{' (ERROR)' if getattr(m, 'error', None) else ''}: {clip(m.text, 400)}")
     out += ["", "**Judgement** (for each, yes / no / unsure):", "",
