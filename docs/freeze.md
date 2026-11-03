@@ -32,3 +32,51 @@ a decision, dated here, not a side effect.
 ## Checking
 
     python -m pytest tests/test_freeze.py
+
+---
+
+# Frozen values of v1.0 (release candidate `v1.0-rc`, 3 November 2026)
+
+The v0.1 values above stay as they are: the 11 lines, their tolerances and the prompts of B and C are unchanged, so the
+v0.1 results stay reproducible. `tests/test_freeze_v10.py` fails if one of the values below changes.
+
+## What is frozen
+
+- **Tolerances of every family**, v0.1 families included, level-4 families and the canaries.
+  `sun_synchronous` is 0.001 deg/day on the node drift (below the secular formula's error, so the closed form does not
+  pass); `finite_burn_raise` is 1 % on the final periapsis and apoapsis radii (the best circularization a long burn can
+  make misses by 0.4 to 0.5 %) and 0.001 deg on the inclination.
+- **Epochs of the J2 lines**: `01 Jan 2000 12:00:00.000` for `j2_drift` and `sun_synchronous`. GMAT's Earth axis departs
+  from the inertial z axis by about 0.0001 deg/day of drift per year away from J2000, so the epoch stays within two years of
+  it (`docs/calibration_v10.md`).
+- **Reward** and **declared limits**: unchanged (60 messages, 60 s Python, 45 s GMAT wait, 300 s GMAT kill, 180 s call).
+- **The three system prompts**: A (no tool), B and C. The prompts of B and C are those of v0.1, bit for bit.
+- **The dataset**: 85 instances of the 14 lines and 3 trap lines, their 9 well-posed twins reported apart, and 3 canaries,
+  through a hash of every field of every default instance; then the statements of the development seeds 0 to 9 of each
+  line, through a second hash.
+- **Reading of the reply**: when a reply holds several `<final_answer>` blocks, the last one is graded (the statement says
+  "exactly one block"; across 486 episodes one reply has two, which moves no rate).
+
+## Assumed deviations from the plan
+
+- Finite burns are a separate level-4 family (`finite_burn_raise`), not a variant of a level-3 family.
+- 85 instances instead of 80.
+- The canaries (3 trivial one-formula questions) are played with every run and counted in none of its results.
+
+## Not frozen
+
+- **Sampling**: no temperature or other sampling setting is passed to any model (the provider's default); every exported
+  row records it. Two runs are comparable only if these columns match.
+- **Models, number of seeds, attempts (k) and the spending guard**: they belong to the run.
+- **The false-claim rules** are validated provisionally (`docs/claims_validation.md`): `claim_unconverged` has not fired
+  on any validation episode, and no human has read the transcripts.
+
+## Seeds
+
+- **Development seeds**: 0 to 9 of each line, used for all calibration (`docs/calibration_v10.md`).
+- **Test seeds**: a new range, to be drawn by the maintainer and kept out of the repository. It is not drawn yet; the
+  release candidate is tagged without it and the freeze is final only once it is.
+
+## Checking
+
+    python -m pytest tests/test_freeze.py tests/test_freeze_v10.py
