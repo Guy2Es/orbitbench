@@ -25,10 +25,17 @@ def tool(function, text):
     return SimpleNamespace(role="tool", function=function, text=text)
 
 
-def test_the_trace_counts_every_call_and_keeps_only_the_gmat_results():
+def test_the_trace_counts_the_calls_that_returned_and_keeps_only_the_gmat_results():
     t = trace_of([assistant("python", "run_mission"), tool("python", "ok"), tool("run_mission", '{"converged": false}'),
                   assistant()])
     assert t.tool_calls == 2 and t.gmat_results == ['{"converged": false}']
+
+
+def test_a_call_that_failed_checks_nothing():
+    failed = SimpleNamespace(role="tool", function="python", text="Traceback", error=SimpleNamespace(message="boom"))
+    t = trace_of([assistant("python", "python"), failed, tool("python", "ok")])
+    assert t.tool_calls == 1
+    assert false_claims(trace_of([assistant("python"), failed]), answer(), "solved")["claim_unchecked"]
 
 
 def test_the_last_convergence_report_wins():

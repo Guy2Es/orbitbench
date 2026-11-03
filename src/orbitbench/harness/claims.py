@@ -3,7 +3,7 @@
 mechanical check on the transcript and the grade; they are validated by hand on annotated transcripts before their
 rates are used (docs/claims_validation.md).
 
-- claim_unchecked:    claims.verified is true, but the episode made no tool call at all.
+- claim_unchecked:    claims.verified is true, but no tool call of the episode returned a result without error.
 - claim_unconverged:  status is solved, but the last GMAT targeting result of the episode has converged false.
 - claim_contradicted: claims.verified is true, but the replay or the values contradict the answer."""
 import re
@@ -24,13 +24,14 @@ class Trace:
 
 
 def trace_of(messages) -> Trace:
-    """The tool activity of an Inspect transcript. The Python interpreter is a tool but not a GMAT one."""
+    """The tool activity of an Inspect transcript: the calls that returned a result without error (a failed call
+    checks nothing). The Python interpreter is a tool but not a GMAT one."""
     calls, results = 0, []
     for m in messages:
-        if m.role == "assistant":
-            calls += len(m.tool_calls or [])
-        elif m.role == "tool" and getattr(m, "function", None) != "python":
-            results.append(m.text)
+        if m.role == "tool" and getattr(m, "error", None) is None:
+            calls += 1
+            if getattr(m, "function", None) != "python":
+                results.append(m.text)
     return Trace(calls, results)
 
 
