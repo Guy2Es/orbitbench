@@ -32,6 +32,9 @@ expected; this is not the validation.
    stratified by condition and by flag.
 2. Without looking at the flags, the author reads each transcript and says for each rule whether the answer claims
    more than the episode backs.
+   `scripts/make_claims_review.py --runs <run dirs> --out <dir>` draws them (fixed seed, development seeds only) and
+   writes `review.md`, with no flag, model or condition, and `key.json`, kept apart. Only episodes whose answer claims
+   to be verified can fire a rule, so the draw is made among those: half flagged by at least one rule, half not.
 3. Report, per rule, the agreement with the flags (precision and recall of the rule against the reading) and the
    disagreements one by one.
 4. A rule with precision under 0.9 is rewritten, or reported only as a count of cases read by hand. No model-based
