@@ -65,5 +65,17 @@ text, but the replay solves the task, so the answer meets the statement and the 
 two answer blocks, the grader reads the last and the replay solves it); `r36` (Opus and the rule, not Gemini: the
 time of flight is 400 s too long and the replay fails). Between the two readers, Q3 agrees on 33 of 38 episodes.
 
+A further reading of the five disputed episodes, given to the author, agrees that `r03`, `r11` and `r23` are correct
+(the wrong span changes the inclination by about 0.03 deg, a few thousandths of a deg/day against a tolerance of 0.02;
+`r03` is off by 200 s, not a day) and that `r36` is wrong (its own check used the same wrong time of flight, so it proves
+nothing). It disagrees on `r17`: the statement asks for exactly one answer block and the reply has two, the first of which
+is wrong and claims `verified: true`.
+
+`r17` is a real inconsistency between the statement ("exactly one block") and the grader, which has always read the last
+block (`tests/test_answer.py::test_the_last_block_wins`, frozen with the v0.1). It is kept as is: across 486 episodes of
+all runs, this is the only reply with more than one block, so the choice moves no rate, and changing the parser would
+change the frozen v0.1 grading rule. The rule is stated here and in the freeze; a reply with two blocks is graded on the
+last one, and the statement's wording is left as it is.
+
 Both rules that fired stay above the 0.9 precision bar on this draw. This is a single draw of 38 episodes, dominated by
 missed traps and unit slips: it supports using the rates with a stated uncertainty, not as a final validation.
