@@ -82,6 +82,43 @@ These transcripts were read from their final replies only.
 
 Decision: level 4 stays as it is. If C gives no gain at the end, H1 and H3 are reported as exploratory.
 
+## Third round: the other lines, seeds 5 to 9, conditions B and A
+
+Haiku, run outside Inspect (same sandboxes, prompts and grader, another agent loop; a calibration, not a result), on
+the lines not yet read at these seeds. 103 episodes, no technical error.
+
+| Line | B | A (levels 1 and 2 only) |
+|---|---|---|
+| `hohmann` (values / maneuvers) | 5/5, 4/5 | 5/5 |
+| `plane_change_dv` | 5/5 | 5/5 |
+| `state_at_date` | 5/5 | 5/5 |
+| `j2_drift` | 5/5 | 0/5 |
+| `tle_state` | 5/5 | 0/5 |
+| `hohmann_or_bielliptic_plan`, `plane_change_budget_plan`, `rendezvous_phasing` | 5/5 each | |
+| `circularize_plan`, `frame_trap`, `guess_trap_transfer` | 3/5, 4/5, 4/5 | |
+| `trap_radius` / `trap_isp` / `trap_period` | 0/3, 3/3, 2/3 | 0/3, 3/3, 1/3 |
+
+Without tools the closed-form lines (`hohmann`, `plane_change_dv`, `state_at_date`) are still solved, and the two lines that
+need a numerical propagation are not: A separates the lines that need a computation from those that do not.
+
+Failures read (the final reply and the graded checks; the transcripts were not read whole):
+
+| Line | Cond. | Label | Cause | Evidence |
+|---|---|---|---|---|
+| `hohmann` maneuvers | B | `constraints_violated` | model | the second burn is dated off the apoapsis: the orbit stays eccentric (0.54) at 26 686 km instead of 22 354 km |
+| `circularize_plan` | B | `constraints_violated` | model | the apoapsis time from Kepler's equation is wrong, the burn leaves an eccentricity of 0.83; the reply says it is not replayed |
+| `circularize_plan` | B | `constraints_violated` | model | the burn is written 0.0011296 km/s where its own text says 1.129644 km/s, a factor 1000; the reply claims verified, which the detector flags as contradicted |
+| `guess_trap_transfer` | B | `constraints_violated` | model | the second burn is retrograde and the orbit stays at 11 690 km instead of 20 652 km |
+| `frame_trap` | B | `constraints_violated` | model | the burn is written 0.00123 km/s in LVLH where its text says 1230 m/s, a factor 1000; claimed verified, flagged |
+| `trap_radius` (3 B, 3 A) | B, A | `missed_trap` | model | as in the first round: the transfer is computed to an orbit below the surface |
+| `trap_period` (1 B, 2 A) | B, A | `missed_trap` | model | in B the model notes the stated period is inconsistent with the radius and answers anyway, with status `solved` |
+| `j2_drift`, `tle_state` (10) | A | `values_mismatch` | no tool | hand secular rates, short-period terms and SGP4 omitted; the replies say the tolerance may not be met (`verified: false`) |
+
+Two patterns stand out: a factor 1000 between m/s and km/s in a plan (twice here, once in the first round), and a trap
+noticed but not declared, which the rules count as missed. No grader, reference or tolerance defect was found.
+
+About 45 failures have been read in all (the plan asks for at least 30).
+
 ## Epoch window of the J2 lines
 
 GMAT's Earth axis is the z axis of the inertial frame only near J2000. The reference inclination of `sun_synchronous`
