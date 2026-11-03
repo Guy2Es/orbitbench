@@ -1,9 +1,11 @@
 # tests/test_ill_posed.py
 """The trap families and their twins: same numbers, one detail apart, and a grader that rewards the right status."""
+import math
+
 import pytest
 
 from orbitbench.answer import FinalAnswer, render_reply
-from orbitbench.constants import EARTH_RADIUS_KM
+from orbitbench.constants import EARTH_MU_KM3_S2, EARTH_RADIUS_KM
 from orbitbench.families import FAMILIES, generate
 from orbitbench.families.ill_posed import KINDS
 from orbitbench.grader import Outcome, grade
@@ -62,13 +64,15 @@ def test_the_isp_trap_has_no_specific_impulse_and_the_twin_has_one():
     assert p["exact"] < p["mass_kg"] and p["exact"] > 0.0
 
 
-def test_the_two_readings_of_the_altitude_trap_give_different_answers():
-    trap, _ = pair("altitude")
-    p = trap.params
-    as_radius = hohmann(p["r1_km"], p["r2_km"]).total_m_s
-    as_altitude = hohmann(p["r1_km"], p["r2_km"] + EARTH_RADIUS_KM).total_m_s
-    assert abs(as_radius - as_altitude) > 10.0 * 1.0
-    assert "of radius" not in trap.statement.split("Transfer it to")[1]
+def test_the_period_of_the_trap_disagrees_with_its_radius_and_the_twin_agrees():
+    trap, twin = pair("period")
+    r2 = trap.params["r2_km"]
+    period = 2.0 * math.pi * math.sqrt(r2 ** 3 / EARTH_MU_KM3_S2)
+
+    def stated(inst):
+        return float(inst.statement.split("orbital period ")[1].split(" s")[0])
+    assert stated(twin) == pytest.approx(period, abs=0.1)
+    assert stated(trap) == pytest.approx(1.15 * period, abs=0.1)
 
 
 def test_the_well_posed_default_leaves_the_existing_instances_unchanged():

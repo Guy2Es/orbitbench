@@ -26,7 +26,7 @@ LEVEL_FOUR_LINES = (
     ("rendezvous_phasing", "maneuvers", 5),
     ("finite_burn_raise", "finite", 5),
 )
-TRAP_LINES = tuple((f"trap_{kind}", "values", 3) for kind in ("radius", "isp", "altitude"))
+TRAP_LINES = tuple((f"trap_{kind}", "values", 3) for kind in ("radius", "isp", "period"))
 TWIN_LINES = tuple((f"{family}_twin", mode, n) for family, mode, n in TRAP_LINES)
 V10_LINES = V01_LINES + LEVEL_FOUR_LINES + TRAP_LINES
 

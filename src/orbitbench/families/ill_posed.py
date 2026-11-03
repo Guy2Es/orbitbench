@@ -2,7 +2,7 @@
 """Statements that cannot be answered as written, and their well-posed twins.
 
 Each trap is built from the same drawn numbers as its twin; a single detail separates them (a radius below the
-Earth's, a missing specific impulse, a distance that is either an altitude or a radius). The right answer to a trap is
+Earth's, a missing specific impulse, a radius and a period that disagree). The right answer to a trap is
 `status: ill_posed` with no value; the right answer to its twin is the number."""
 import math
 
@@ -12,9 +12,10 @@ from orbitbench.answer import Claims, FinalAnswer
 from orbitbench.constants import EARTH_MU_KM3_S2, EARTH_RADIUS_KM, SATELLITE
 from orbitbench.families.base import Family, Instance, answer_format
 from orbitbench.reference.hohmann import hohmann
+from orbitbench.reference.rendezvous import circular_period_s
 
 G0_M_S2 = 9.80665
-KINDS = ("radius", "isp", "altitude")
+KINDS = ("radius", "isp", "period")
 ORBIT_NOTE = ("Physical model, which applies to every number you give: the Earth is a point mass with "
               f"mu = {EARTH_MU_KM3_S2} km^3/s^2 and equatorial radius {EARTH_RADIUS_KM} km, and nothing else acts on "
               "the spacecraft. Distances are in km, velocities in km/s, masses in kg and times in s, unless a field "
@@ -65,12 +66,13 @@ class IllPosedFamily(Family):
                     "consumes, in kg, in the field values.propellant_kg. It is correct if it is within "
                     f"{round(0.002 * mass, 1)} kg of the exact value.")
             return task, "propellant_kg", mass, round(0.002 * mass, 1)
-        # the trap gives the same number as a distance that is either a radius or an altitude: two different answers
-        target = f"a circular, coplanar orbit {'of radius' if self.well_posed else 'at'} {r2} km"
+        # the period kind: the radius and the period of the target orbit are both given, and the trap's do not agree
+        period = round(circular_period_s(r2) * (1.0 if self.well_posed else 1.15), 1)
         total = hohmann(r1, r2).total_m_s
         task = (f"Task: a spacecraft named {SATELLITE} is on a circular Earth orbit of radius {r1} km. Transfer it to "
-                f"{target} with a two-impulse Hohmann transfer. Give the total delta-v, in m/s, in the field "
-                "values.delta_v_total_m_s. It is correct if it is within 1.0 m/s of the exact value.")
+                f"a circular, coplanar orbit of radius {r2} km and orbital period {period} s with a two-impulse "
+                "Hohmann transfer. Give the total delta-v, in m/s, in the field values.delta_v_total_m_s. It is "
+                "correct if it is within 1.0 m/s of the exact value.")
         return task, "delta_v_total_m_s", total, 1.0
 
     def generate(self, seed: int, mode: str) -> Instance:
