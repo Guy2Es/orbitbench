@@ -74,8 +74,9 @@ v0.1 results stay reproducible. `tests/test_freeze_v10.py` fails if one of the v
 ## Seeds
 
 - **Development seeds**: 0 to 9 of each line, used for all calibration (`docs/calibration_v10.md`).
-- **Test seeds**: a new range, to be drawn by the maintainer and kept out of the repository. It is not drawn yet; the
-  release candidate is tagged without it and the freeze is final only once it is.
+- **Test seeds**: a new range, drawn by the maintainer on 3 November 2026 and kept out of the repository (an ignored file).
+  It does not overlap the development seeds or the range of the v0.1. The release candidate was tagged before it was
+  drawn; the freeze is final once the human review of the new statements is done.
 
 ## Checking
 
