@@ -82,6 +82,24 @@ These transcripts were read from their final replies only.
 
 Decision: level 4 stays as it is. If C gives no gain at the end, H1 and H3 are reported as exploratory.
 
+## Epoch window of the J2 lines
+
+GMAT's Earth axis is the z axis of the inertial frame only near J2000. The reference inclination of `sun_synchronous`
+seed 0, flown in GMAT from six epochs over the same span, gives a drift that departs from the Sun's rate by:
+
+| Epoch | Drift minus Sun's rate (deg/day) |
+|---|---|
+| 01 Jan 2000 12:00 | -0.00009 |
+| 01 Jan 2005 12:00 | -0.00035 |
+| 01 Jan 2010 12:00 | -0.00101 |
+| 01 Jan 2020 12:00 | -0.00207 |
+| 01 Jan 2026 00:00 | -0.00255 |
+| 01 Jan 2035 12:00 | -0.00383 |
+
+The error grows by about 0.0001 deg/day per year. With the tolerance of 0.001 deg/day and a margin of four, the epoch
+must stay within two years of J2000: the J2 lines (`sun_synchronous`, `j2_drift`) keep `01 Jan 2000 12:00:00.000`, which
+is fixed in the freeze.
+
 ## Still open
 
 - `trap_isp` is at 100 % for both models and has not been hardened.
