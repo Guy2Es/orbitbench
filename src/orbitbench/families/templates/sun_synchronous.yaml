@@ -13,12 +13,13 @@ ranges:
   aop_deg: [0.0, 360.0]
   ta_deg: [0.0, 360.0]
 min_periapsis_km: 6700.0
-# The secular formula is the second reference: an instance whose formula answer drifts further than this from the
-# Sun's rate when its orbit is integrated is rejected.
+# The secular formula is the second reference and must not be enough: its answer drifts from the Sun's rate, when the
+# orbit is integrated, by more than formula_min_gap (twice the tolerance) and by at most formula_agreement.
 formula_agreement_deg_day: 0.015
+formula_min_gap_deg_day: 0.002
 
 tolerance:
-  drift_deg_day: 0.02
+  drift_deg_day: 0.001
 
 statement:
   common: >-

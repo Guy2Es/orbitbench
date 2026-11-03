@@ -34,7 +34,7 @@ def test_only_the_orbit_mode_exists():
 
 
 @pytest.mark.parametrize("seed", SEEDS)
-def test_the_two_references_agree_inside_the_tolerance(seed):
+def test_the_formula_is_a_sound_guess_that_the_tolerance_rejects(seed):
     inst = instance(seed)
     family, p = FAMILIES["sun_synchronous"], inst.params
     tol = inst.constraints[0]["abs_tol"]
@@ -43,7 +43,7 @@ def test_the_two_references_agree_inside_the_tolerance(seed):
     assert abs(numeric - formula) < 0.25                    # the osculating start differs from the mean elements
     drift = measured_drift_deg_day(p["sma_km"], p["ecc"], formula, p["raan_deg"], p["aop_deg"], p["ta_deg"],
                                    p["n_orbits"])
-    assert abs(drift - SUN_RATE_DEG_DAY) <= tol * 0.75      # a closed-form answer must pass with a margin
+    assert 2 * tol <= abs(drift - SUN_RATE_DEG_DAY) <= 0.015   # the closed form is close, and not enough
     exact = measured_drift_deg_day(p["sma_km"], p["ecc"], numeric, p["raan_deg"], p["aop_deg"], p["ta_deg"],
                                    p["n_orbits"])
     assert exact == pytest.approx(SUN_RATE_DEG_DAY, abs=1e-6)

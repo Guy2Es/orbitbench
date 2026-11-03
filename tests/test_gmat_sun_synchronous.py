@@ -26,11 +26,11 @@ def test_gmat_measures_the_suns_rate_on_the_reference(seed, tmp_path):
 
 
 @pytest.mark.parametrize("seed", range(5))
-def test_the_closed_form_answer_passes_the_grader(seed, tmp_path):
+def test_the_closed_form_answer_is_not_enough(seed, tmp_path):
     inst = generate("sun_synchronous", seed, "orbit")
     reply = render_reply(FinalAnswer(schema_version="1.0", status="solved",
                                      initial_orbit={"inc_deg": FAMILIES["sun_synchronous"].reference_formula(inst)}))
-    assert grade(inst, reply, job_dir=tmp_path / "job").outcome is Outcome.SOLVED
+    assert grade(inst, reply, job_dir=tmp_path / "job").outcome is Outcome.CONSTRAINTS_VIOLATED
 
 
 def test_a_polar_orbit_is_not_sun_synchronous(tmp_path):

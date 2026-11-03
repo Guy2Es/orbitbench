@@ -24,7 +24,8 @@ class SunSynchronousFamily(Family):
 
     def _draw(self, seed: int) -> dict:
         """Elements from the seed. Orbits that dip into the atmosphere, that admit no sun-synchronous inclination, or
-        whose secular-formula answer drifts too far from the Sun's rate when integrated, are redrawn."""
+        whose secular-formula answer is either good enough to pass or too far from the Sun's rate when integrated, are
+        redrawn: the formula must not be enough, and must stay a sound first guess."""
         tpl, rng = self.template, np.random.default_rng(seed)
         rg = tpl["ranges"]
         for _ in range(MAX_DRAWS):
@@ -37,7 +38,7 @@ class SunSynchronousFamily(Family):
                 continue
             drift = measured_drift_deg_day(p["sma_km"], p["ecc"], formula, p["raan_deg"], p["aop_deg"], p["ta_deg"],
                                            self._n_orbits(p["sma_km"]))
-            if abs(drift - SUN_RATE_DEG_DAY) > tpl["formula_agreement_deg_day"]:
+            if not tpl["formula_min_gap_deg_day"] <= abs(drift - SUN_RATE_DEG_DAY) <= tpl["formula_agreement_deg_day"]:
                 continue
             return p
         raise RuntimeError(f"no valid draw in {MAX_DRAWS} tries for seed {seed}")

@@ -5,7 +5,8 @@ import pytest
 from orbitbench.answer import FinalAnswer, FiniteBurn, Maneuver, extract_answer, render_reply
 from orbitbench.epoch import add_seconds
 from orbitbench.families import FAMILIES, generate
-from orbitbench.reference.finite_burn import apoapsis_after, impulsive_duration_s
+from orbitbench.epoch import parse_epoch
+from orbitbench.reference.finite_burn import apoapsis_after, circularization, impulsive_duration_s
 from orbitbench.replay import PlanError, build_mission
 
 SEEDS = range(6)
@@ -36,20 +37,24 @@ def test_an_instance_is_a_level_four_finite_burn_task():
 def test_the_reference_burn_reaches_the_apoapsis_and_the_impulsive_guess_does_not(seed):
     inst, p = instance(seed), instance(seed).params
     mass = FAMILIES["finite_burn_raise"]._mass_kg()
-    tol = inst.constraints[0]["abs_tol"]
-    assert abs(apoapsis_after(p["r1_km"], p["thrust_n"], p["isp_s"], mass, p["duration_s"]) - p["ra_km"]) < 0.1 * tol
+    assert abs(apoapsis_after(p["r1_km"], p["thrust_n"], p["isp_s"], mass, p["duration_s"]) - p["ra_km"]) < 1.0
     guess = impulsive_duration_s(p["r1_km"], p["ra_km"], p["thrust_n"], p["isp_s"], mass)
-    assert abs(apoapsis_after(p["r1_km"], p["thrust_n"], p["isp_s"], mass, guess) - p["ra_km"]) > 3 * tol
-    assert p["duration_s"] < 1.5 * p["duration_s"] + 600.0     # the burn fits before the final epoch
+    assert abs(apoapsis_after(p["r1_km"], p["thrust_n"], p["isp_s"], mass, guess) - p["ra_km"]) > 0.003 * p["ra_km"]
+    second = circularization(p["r1_km"], p["ra_km"], p["thrust_n"], p["isp_s"], mass, p["duration_s"])
+    assert second["worst_miss"] < 0.006   # inside half the tolerance
+    assert p["coast_s"] == pytest.approx(second["coast_s"], abs=1e-3)
+    assert p["duration_s"] + p["coast_s"] + p["duration2_s"] < (
+        parse_epoch(inst.final_epoch) - parse_epoch(inst.epoch)) / 1000.0     # both burns fit before the final epoch
 
 
-def test_the_reference_plan_is_one_finite_burn_with_the_thruster_of_the_spacecraft():
+def test_the_reference_plan_is_two_finite_burns_with_the_thruster_of_the_spacecraft():
     inst = instance()
     mission = build_mission(inst, FAMILIES["finite_burn_raise"].reference(inst))
-    assert [step["type"] for step in mission["sequence"]] == ["finite_burn", "propagate"]
+    assert [step["type"] for step in mission["sequence"]] == ["finite_burn", "propagate", "finite_burn", "propagate"]
     assert mission["sequence"][0]["thruster"] == "Thr" and mission["sequence"][0]["direction"] == "prograde"
     sc = mission["spacecraft"][0]
     assert sc["dry_mass_kg"] == 850.0 and sc["tanks"][0]["fuel_mass_kg"] == 600.0
+    assert [c["quantity"] for c in inst.constraints] == ["ra_km", "rp_km", "inc_deg"]
 
 
 def test_burns_are_ordered_by_date_whatever_the_list_they_come_in():

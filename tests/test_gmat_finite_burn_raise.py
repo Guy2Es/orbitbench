@@ -1,5 +1,6 @@
 # tests/test_gmat_finite_burn_raise.py
-"""The finite-burn references flown in GMAT: the integrated duration reaches the apoapsis, the impulsive one does not."""
+"""The finite-burn references flown in GMAT: the integrated pair of burns circularizes the orbit, the impulsive guesses
+do not."""
 import pytest
 
 from orbitbench.answer import FinalAnswer, FiniteBurn, render_reply
@@ -25,4 +26,26 @@ def test_the_impulsive_duration_falls_short_in_gmat(tmp_path):
     answer = FinalAnswer(schema_version="1.0", status="solved", finite_burns=[burn])
     result = grade(inst, render_reply(answer), job_dir=tmp_path / "job")
     assert result.outcome is Outcome.CONSTRAINTS_VIOLATED
-    assert [c["met"] for c in result.detail["checks"]] == [False, True]
+    assert [c["met"] for c in result.detail["checks"]] == [False, False, True]
+
+
+def test_the_first_burn_alone_leaves_the_periapsis_low(tmp_path):
+    inst = generate("finite_burn_raise", 1, "finite")
+    first = FAMILIES["finite_burn_raise"].reference(inst).finite_burns[:1]
+    result = grade(inst, render_reply(FinalAnswer(schema_version="1.0", status="solved", finite_burns=first)),
+                   job_dir=tmp_path / "job")
+    assert result.outcome is Outcome.CONSTRAINTS_VIOLATED
+    assert [c["met"] for c in result.detail["checks"]] == [True, False, True]
+
+
+def test_a_circularization_by_the_impulsive_formula_misses_in_gmat(tmp_path):
+    """Both burns sized by Tsiolkovsky, the second one starting at the apoapsis: the plan most models would try."""
+    inst = generate("finite_burn_raise", 2, "finite")
+    reference = FAMILIES["finite_burn_raise"].reference(inst).finite_burns
+    p = inst.params
+    naive = FiniteBurn(epoch_utc=reference[1].epoch_utc, spacecraft=inst.satellite,
+                       duration_s=impulsive_duration_s(p["r1_km"], p["ra_km"], p["thrust_n"], p["isp_s"], 1450.0),
+                       direction="prograde")
+    result = grade(inst, render_reply(FinalAnswer(schema_version="1.0", status="solved",
+                                                  finite_burns=[reference[0], naive])), job_dir=tmp_path / "job")
+    assert result.outcome is Outcome.CONSTRAINTS_VIOLATED

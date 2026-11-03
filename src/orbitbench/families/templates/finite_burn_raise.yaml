@@ -10,15 +10,16 @@ ranges:
   inc_deg: [0.0, 98.0]
   raan_deg: [0.0, 360.0]
   ta_deg: [0.0, 360.0]
-  apoapsis_factor: [1.4, 1.8]
+  apoapsis_factor: [1.2, 1.45]
   thrust_n: [400.0, 500.0]
   isp_s: [300.0, 330.0]
 dry_mass_kg: 850.0
 fuel_kg: 600.0
-max_fuel_fraction: 0.8      # the reference burn uses at most this share of the tank
+max_fuel_fraction: 0.9      # the two reference burns use at most this share of the tank
+max_reference_miss: 0.006   # the reference circularization misses the radius by at most this share (the tolerance is 0.01)
 
 tolerance:
-  apoapsis_rel: 0.003
+  radius_rel: 0.01        # of the final periapsis and apoapsis radii
   inc_deg: 0.001
 
 statement:
@@ -33,10 +34,11 @@ statement:
     mu = {mu} km^3/s^2 and nothing else acts on the spacecraft but its thruster. Distances are in km, velocities in
     km/s and angles in degrees, unless a field name says otherwise.
 
-    Task: raise the apoapsis radius of the orbit to {ra_km} km with one burn of the thruster, which is not
-    impulsive: it thrusts for the duration you choose.
+    Task: put the spacecraft on a circular orbit of radius {ra_km} km, in the same plane, with two burns of the
+    thruster, which are not impulsive: each thrusts for the duration you choose, and the first one raises the
+    apoapsis to {ra_km} km.
   finite: >-
-    Give the burn in the field finite_burns: one entry per burn, in chronological order. Each entry has epoch_utc
+    Give the burns in the field finite_burns: one entry per burn, in chronological order. Each entry has epoch_utc
     (format 'DD Mon YYYY HH:MM:SS.mmm', UTC, to the millisecond) for the start of the thrust, spacecraft
     ('{satellite}'), duration_s (seconds of thrust) and direction (one of prograde, retrograde, normal, antinormal:
     the thrust direction in the velocity-normal-binormal axes, prograde being along the velocity). The thrust must
@@ -44,4 +46,5 @@ statement:
 
     Your plan is replayed in GMAT R2026a from the initial state, with the model above and a Prince-Dormand 7(8)
     integrator of accuracy 1e-12, and the final state is checked on {final_epoch} UTC: the apoapsis radius within
-    {ra_tol_km} km of {ra_km} km and the inclination within {inc_tol} deg of {inc_deg} deg.
+    {ra_tol_km} km of {ra_km} km, the periapsis radius within {ra_tol_km} km of {ra_km} km, and the inclination
+    within {inc_tol} deg of {inc_deg} deg.
