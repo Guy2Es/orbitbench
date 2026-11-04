@@ -1,0 +1,27 @@
+name: tsiolkovsky
+levels:
+  values: 1
+
+epoch: "01 Jan 2026 00:00:00.000"
+
+ranges:
+  mass_kg: [800.0, 3000.0]
+  delta_v_m_s: [200.0, 3000.0]
+  isp_s: [250.0, 450.0]
+
+tolerance:
+  propellant_mass_kg: 0.5
+
+statement:
+  common: >-
+    A spacecraft named {satellite} has a mass of {mass_kg} kg, propellant included, before a burn. Its engine has
+    a specific impulse of {isp_s} s.
+
+    Physical model, which applies to every number you give: the burn is impulsive, the rocket equation holds
+    with standard gravity g0 = {g0} m/s^2, and nothing else acts on the spacecraft. Masses are in kg, velocities
+    in m/s and times in s, unless a field name says otherwise.
+
+    Task: the burn gives the spacecraft a delta-v of {delta_v_m_s} m/s. Find the mass of propellant it burns.
+  values: >-
+    Give the propellant mass, in kg, in the field values.propellant_mass_kg. It is correct if it is within
+    {mass_tol} kg of the exact value.

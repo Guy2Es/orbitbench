@@ -3,6 +3,7 @@
 from orbitbench.families.base import Family, Instance
 from orbitbench.families.canary import CanaryFamily
 from orbitbench.families.circularize_plan import CircularizePlanFamily
+from orbitbench.families.escape_velocity import EscapeVelocityFamily
 from orbitbench.families.finite_burn_raise import FiniteBurnRaiseFamily
 from orbitbench.families.frame_trap import FrameTrapFamily
 from orbitbench.families.guess_trap_transfer import GuessTrapTransferFamily
@@ -16,6 +17,7 @@ from orbitbench.families.rendezvous_phasing import RendezvousPhasingFamily
 from orbitbench.families.state_at_date import StateAtDateFamily
 from orbitbench.families.sun_synchronous import SunSynchronousFamily
 from orbitbench.families.tle_state import TleStateFamily
+from orbitbench.families.tsiolkovsky import TsiolkovskyFamily
 
 FAMILIES = {family.name: family for family in (HohmannFamily(), PlaneChangeDvFamily(), StateAtDateFamily(),
                                                        TleStateFamily(), J2DriftFamily(),
@@ -23,6 +25,7 @@ FAMILIES = {family.name: family for family in (HohmannFamily(), PlaneChangeDvFam
                                                        PlaneChangeBudgetPlanFamily(), FrameTrapFamily(),
                                                        GuessTrapTransferFamily(), SunSynchronousFamily(),
                                                        RendezvousPhasingFamily(), FiniteBurnRaiseFamily(), CanaryFamily(),
+                                                       TsiolkovskyFamily(), EscapeVelocityFamily(),
                                                        *(IllPosedFamily(k, w) for k in KINDS for w in (False, True)))}
 
 

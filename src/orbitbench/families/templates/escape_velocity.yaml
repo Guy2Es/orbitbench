@@ -1,0 +1,27 @@
+name: escape_velocity
+levels:
+  values: 1
+
+epoch: "01 Jan 2026 00:00:00.000"
+
+ranges:
+  r_km: [6700.0, 42164.0]
+  inc_deg: [0.0, 98.0]
+
+tolerance:
+  delta_v_escape_m_s: 1.0
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is on a circular Earth orbit of radius {r_km} km and inclination {inc_deg} deg
+    on {epoch} UTC.
+
+    Physical model, which applies to every number you give: the Earth is a point mass with
+    mu = {mu} km^3/s^2 and nothing else acts on the spacecraft. Distances are in km, velocities in km/s and
+    angles in degrees, unless a field name says otherwise.
+
+    Task: with a single impulsive burn along its velocity, the spacecraft must reach exactly the Earth's escape
+    speed at its current radius (a parabolic trajectory). Find the delta-v of that burn.
+  values: >-
+    Give the delta-v, in m/s, in the field values.delta_v_escape_m_s. It is correct if it is within {dv_tol} m/s
+    of the exact value.
