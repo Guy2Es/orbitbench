@@ -81,3 +81,51 @@ v0.1 results stay reproducible. `tests/test_freeze_v10.py` fails if one of the v
 ## Checking
 
     python -m pytest tests/test_freeze.py tests/test_freeze_v10.py
+
+# Amendment of 8 November 2026: the lunar impact family (outside the v1.0 freeze)
+
+Nothing frozen above changes. `lunar_impact` is a separate line (`--suite lunar`), under `docs/lunar_baseline_rule.md`
+and the amendment of `docs/hypotheses.md` of the same date.
+
+- **Frozen for this line**: its tolerance (1 day on the impact date), its statement (which names DE405, the Earth and Sun
+  GM values and the MOON_PA frame), the horizon (60 days), the ranges of the draw (periapsis altitude 20 to 45 km,
+  eccentricity 0.003 to 0.008, inclination 45 to 85 deg), and the reference setting (GMAT PrinceDormand78, accuracy 1e-12,
+  step at most 300 s). `tests/test_freeze_v10.py` excludes the line from the scan of v1.0 tolerances (`POST_FREEZE`) and
+  `tests/test_lunar_impact.py` checks the line itself.
+- **Seeds**: development seeds 0 to 14 (table in the repository); test seeds, 30 of them, drawn on 8 November 2026 as
+  one range of consecutive integers by a random draw, and kept in `private/lunar_impact_table.yaml`, which git ignores.
+  They do not overlap the development seeds. `ORBITBENCH_LUNAR_PRIVATE_TABLE` names another file.
+- **Screening**: a candidate is kept only if its GMAT impact exists within 60 days and the independent propagator moves
+  its date by less than 0.3 day under both signs of the orientation offset (`scripts/validate_lunar_reference.py`).
+- **Checking**: `python -m pytest tests/test_lunar_impact.py`.
+
+## v1.1 (8 November 2026): v1.0 unchanged, plus the lunar line as a separate stratum
+
+v1.1 is v1.0 with one more line, `lunar_impact`, reported apart from the 14 lines of v1.0 and the traps and canaries. Every
+value of v1.0 above is unchanged, and the v1.0 dataset hash is not recomputed: the lunar line is not part of it.
+`tests/test_freeze_lunar.py` freezes the new line and replaces the earlier exclusion (`POST_FREEZE`) with a check of its
+own values:
+
+- the template: tolerance 1 day, horizon 60 days, field GRGM900C degree and order 50, epoch range, ranges of the draw;
+- the reference setting of `scripts/build_lunar_table.py` (PrinceDormand78, accuracy 1e-12, steps of at most 300 s);
+- the statements of development seeds 0 to 14 (SHA-256 `adfd5780...63bb1f`) and the development table, with its impact dates
+  (SHA-256 `bc8361bd...18b16f`);
+- the sizes of the suites: `--suite lunar` is the 15 development seeds, `--suite lunar_test` is the 30 test seeds, played with
+  `--first-seed` set to the first of them (kept in `private/lunar_test_range.txt`, ignored by git).
+
+**Review done (8 November 2026).** The maintainer read the lunar statement and validated it unchanged, so the hash above stands.
+If its text is changed later, the hash is updated here, with the date, before any run on the test seeds.
+
+**Run settings for the test seeds, declared before the run.**
+- Condition B and C only, models gpt-oss-120b, Qwen3.7 Flash, DeepSeek V4 Flash and Gemini 2.5 Flash Lite through OpenRouter.
+- `--deny-data-collection`: only providers that do not store prompts, because the 30 test statements are sent to the
+  providers. A model with no such provider would fail with an error and be reported, not silently replaced.
+- Provider pinned with no fallback for the two models that were served by five providers in the pilot (gpt-oss-120b: Crusoe;
+  DeepSeek V4 Flash: DeepInfra, the most used of its five in the pilot). Qwen3.7 Flash (Alibaba) and Gemini 2.5 Flash Lite
+  (Google AI Studio) had one provider each. Every exported row records `provider_requested` and `providers` (the provider
+  that served each call).
+- Message limit 60, token guard 1 000 000 per episode, k = 3 (`--epochs 3`), the provider's default sampling.
+- An episode that ends in an `error` (a provider refusing or failing) is rerun, and the reruns are counted and reported; it
+  is not scored as a failed answer.
+- Failures are reported in four kinds (refused, wrong answer, no usable answer, plan or run failed), a refusal being an honest
+  `ill_posed` that the grader scores as a failure.

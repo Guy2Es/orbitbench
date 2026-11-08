@@ -96,3 +96,36 @@ def test_the_command_line_parses_a_run():
     assert parse(["report", "runs/a", "runs/b"]).dirs == [Path("runs/a"), Path("runs/b")]
     with pytest.raises(SystemExit):
         parse(["run", "--condition", "D", "--model", "m", "--log-dir", "x"])
+
+
+def test_a_row_names_the_provider_that_served_and_the_one_asked_for(tmp_path):
+    from orbitbench.harness.export import providers_of
+
+    class Call:
+        response = {"provider": "Crusoe"}
+
+    class Event:
+        event = "model"
+        call = Call()
+
+    class Sample:
+        events = [Event(), Event()]
+
+    assert providers_of(Sample()) == "Crusoe"
+    Sample.events = []
+    assert providers_of(Sample()) == ""
+    inst = next(i for i in instances() if i.mode == "values")
+    [log] = logs_for([inst], ["a"], tmp_path)
+    [row] = rows_of(log, "B")
+    assert row["provider_requested"] is None and row["providers"] == ""
+
+
+def test_the_command_line_takes_a_provider():
+    assert parse(["run", "--condition", "B", "--model", "m", "--log-dir", "x", "--provider", "Crusoe"]).provider == "Crusoe"
+    assert parse(["run", "--condition", "B", "--model", "m", "--log-dir", "x"]).provider is None
+
+
+def test_the_command_line_can_refuse_providers_that_store_prompts():
+    args = parse(["run", "--condition", "B", "--model", "m", "--log-dir", "x", "--deny-data-collection"])
+    assert args.deny_data_collection is True
+    assert parse(["run", "--condition", "B", "--model", "m", "--log-dir", "x"]).deny_data_collection is False

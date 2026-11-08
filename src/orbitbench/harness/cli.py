@@ -4,9 +4,9 @@ python -m orbitbench.harness report runs/pilot-b runs/pilot-c"""
 import argparse
 from pathlib import Path
 
-from orbitbench.harness.catalog import CANARY_LINES, TWIN_LINES, V01_LINES, V10_LINES, instances
+from orbitbench.harness.catalog import CANARY_LINES, LUNAR_LINES, LUNAR_TEST_LINES, TWIN_LINES, V01_LINES, V10_LINES, instances
 
-SUITES = {"v01": V01_LINES, "v10": V10_LINES, "twins": TWIN_LINES, "canary": CANARY_LINES}
+SUITES = {"v01": V01_LINES, "v10": V10_LINES, "twins": TWIN_LINES, "canary": CANARY_LINES, "lunar": LUNAR_LINES, "lunar_test": LUNAR_TEST_LINES}
 
 
 def parse(argv=None) -> argparse.Namespace:
@@ -16,7 +16,7 @@ def parse(argv=None) -> argparse.Namespace:
     run.add_argument("--condition", choices=["A", "B", "C"], required=True)
     run.add_argument("--model", required=True, help="an Inspect model name, e.g. anthropic/claude-haiku-5-5")
     run.add_argument("--log-dir", required=True, type=Path, help="one folder per run: relaunching resumes it")
-    run.add_argument("--suite", choices=["v01", "v10", "twins", "canary"], default="v01",
+    run.add_argument("--suite", choices=["v01", "v10", "twins", "canary", "lunar", "lunar_test"], default="v01",
                      help="v01 (61 instances, frozen), v10 (v0.1 lines plus levels 4 and traps) or the well-posed twins")
     run.add_argument("--families", nargs="*", help="only these families (default: all of v0.1)")
     run.add_argument("--first-seed", type=int, default=0, help="each line uses seeds first-seed .. first-seed+n-1")
@@ -26,6 +26,10 @@ def parse(argv=None) -> argparse.Namespace:
     run.add_argument("--limit", type=int, help="only the first N episodes (smoke tests)")
     run.add_argument("--token-limit", type=int, help="spending guard: tokens allowed to one episode")
     run.add_argument("--epochs", type=int, default=1, help="plays of each instance (reliability needs at least 2)")
+    run.add_argument("--provider", help="OpenRouter only: serve the model from this provider alone, with no fallback "
+                                        "(without it, OpenRouter picks among providers; the one that served is recorded anyway)")
+    run.add_argument("--deny-data-collection", action="store_true",
+                     help="OpenRouter only: use only providers that do not store prompts (for the private test seeds)")
     run.add_argument("--batch", action="store_true",
                      help="use the Message Batches API: half the price, but every turn waits for its batch")
     report = sub.add_parser("report", help="table, token bill and failures to audit, from the episodes.jsonl of runs")
@@ -48,8 +52,15 @@ def run(args: argparse.Namespace) -> int:
         raise SystemExit(f"no line matches {args.families}")
     task = build_task(instances(lines, args.first_seed, args.per_line, args.max_level or (2 if args.condition == "A" else None)), args.condition, token_limit=args.token_limit,
                       epochs=args.epochs)
-    success, logs = eval_set(task, log_dir=str(args.log_dir), model=args.model, max_samples=args.max_samples,
-                             limit=args.limit, display="plain", retry_attempts=2, batch=args.batch or None)
+    routing = {}
+    if args.provider:
+        routing.update({"order": [args.provider], "allow_fallbacks": False})
+    if args.deny_data_collection:
+        routing["data_collection"] = "deny"
+    model_args = {"provider": routing} if routing else {}
+    success, logs = eval_set(task, log_dir=str(args.log_dir), model=args.model, model_args=model_args,
+                             max_samples=args.max_samples, limit=args.limit, display="plain", retry_attempts=2,
+                             batch=args.batch or None)
     logs = [read_eval_log(log.location) for log in logs]     # eval_set returns the logs without their samples
     n = write_jsonl(logs, args.condition, args.log_dir / "episodes.jsonl")
     print(f"{n} episodes written to {args.log_dir / 'episodes.jsonl'}; complete: {success}")

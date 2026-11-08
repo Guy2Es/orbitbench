@@ -1,0 +1,44 @@
+name: lunar_impact
+levels:
+  values: 4
+
+# Candidates are drawn from these ranges. A candidate whose GMAT reference does not impact within max_days is rejected
+# by scripts/build_lunar_table.py, so that every instance has an answer. See docs/lunar_baseline_rule.md.
+epoch_start: "01 Jan 2026 00:00:00.000"
+epoch_days: 365
+ranges:
+  periapsis_alt_km: [20.0, 45.0]
+  ecc: [0.003, 0.008]
+  inc_deg: [45.0, 85.0]
+  raan_deg: [0.0, 360.0]
+  aop_deg: [0.0, 360.0]
+  ta_deg: [0.0, 360.0]
+max_days: 60
+max_candidates: 200
+gravity: {degree: 50, order: 50, file: GRGM900C}
+
+tolerance:
+  impact_days: 1.0
+
+statement:
+  common: >-
+    A spacecraft named {satellite} is on a low orbit around the Moon. On {epoch} UTC its elements, in the
+    Moon-centered inertial frame whose axes are those of the Earth mean equator and equinox of J2000, are:
+    semi-major axis {sma_km} km, eccentricity {ecc}, inclination {inc_deg} deg, right ascension of the ascending
+    node {raan_deg} deg, argument of periapsis {aop_deg} deg, true anomaly {ta_deg} deg.
+
+    Physical model, which applies to every number you give: the gravity of the Moon is the field GRGM900C truncated
+    to degree {degree} and order {order}, as in the file grgm900c.cof distributed with NASA GMAT R2026a (GM and
+    reference radius are those of the header of that file: GM = 4902.79996708864 km^3/s^2, radius = 1738.0 km). The
+    Earth and the Sun are point masses (GM = 398600.4415 and 132712440017.99 km^3/s^2) that attract both the
+    spacecraft and the Moon, at the positions of the JPL DE405 ephemeris. The axes of the gravity field are the lunar
+    principal axes, with the orientation of the DE421 lunar libration kernel (NAIF frame MOON_PA). Nothing else acts
+    on the spacecraft. Distances are in km and angles in degrees, unless a field
+    name says otherwise.
+
+    Task: the orbit decays and the spacecraft reaches the surface within {max_days} days. Give the time, in days
+    elapsed since {epoch} UTC, at which the osculating periapsis radius of the orbit around the Moon first falls
+    below {impact_radius} km, the mean radius of the Moon.
+  values: >-
+    Give it in the field values.impact_days, in days. The answer is correct if it is within {tol} day of the exact
+    value.

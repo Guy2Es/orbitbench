@@ -17,6 +17,7 @@ from orbitbench.harness.prompt import system_prompt
 
 TEMPLATES = Path(grader.__file__).parent / "families" / "templates"
 TRAINING_ONLY = ("tsiolkovsky", "escape_velocity")     # the RL training families: not part of the benchmark, not frozen here
+POST_FREEZE = ("lunar_impact",)    # added after the v1.0 freeze, under its own rule (docs/lunar_baseline_rule.md); no v1.0 value moves
 
 
 def digest(text: str) -> str:
@@ -31,7 +32,7 @@ def live() -> dict:
     default = instances(V10_LINES) + instances(TWIN_LINES) + instances(CANARY_LINES)
     dev = [generate(family, seed, mode) for family, mode, _ in V10_LINES for seed in range(10)]
     return {
-        "tolerances": {p.stem: load(p)["tolerance"] for p in sorted(TEMPLATES.glob("*.yaml")) if "tolerance" in load(p) and p.stem not in TRAINING_ONLY},
+        "tolerances": {p.stem: load(p)["tolerance"] for p in sorted(TEMPLATES.glob("*.yaml")) if "tolerance" in load(p) and p.stem not in TRAINING_ONLY + POST_FREEZE},
         "epochs": {p.stem: load(p)["epoch"] for p in sorted(TEMPLATES.glob("*.yaml"))
                    if p.stem in ("j2_drift", "sun_synchronous")},
         "reward_scale_m_s": grader.REWARD_SCALE_M_S,

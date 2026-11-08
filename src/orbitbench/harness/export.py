@@ -8,6 +8,14 @@ from inspect_ai.log import EvalLog
 from orbitbench.harness.claims import answer_of, false_claims, trace_of
 
 
+def providers_of(sample) -> str:
+    """The inference providers that served the model calls of an episode, sorted and joined by '|' (OpenRouter names the
+    provider in each raw response). Empty when the log has none (a model that is not served through OpenRouter)."""
+    names = {e.call.response.get("provider") for e in sample.events or []
+             if e.event == "model" and e.call and isinstance(e.call.response, dict) and e.call.response.get("provider")}
+    return "|".join(sorted(names))
+
+
 def settings_of(log: EvalLog) -> dict:
     """What the run was played with, so that a row says it: sampling settings the provider was given (None is unset;
     an unset temperature is the provider's default, written as such), the declared limits and the harness version."""
@@ -15,7 +23,8 @@ def settings_of(log: EvalLog) -> dict:
     return {"temperature": "provider_default" if gen.temperature is None else gen.temperature,
             "top_p": gen.top_p, "max_tokens": gen.max_tokens, "reasoning_effort": gen.reasoning_effort,
             "batch": bool(gen.batch), "message_limit": cfg.message_limit, "token_limit": cfg.token_limit,
-            "epochs": cfg.epochs, "inspect_ai": log.eval.packages.get("inspect_ai")}
+            "epochs": cfg.epochs, "inspect_ai": log.eval.packages.get("inspect_ai"),
+            "provider_requested": (log.eval.model_args or {}).get("provider")}
 
 
 def rows_of(log: EvalLog, condition: str) -> list[dict]:
@@ -33,7 +42,7 @@ def rows_of(log: EvalLog, condition: str) -> list[dict]:
         usage = list((sample.model_usage or {}).values())
         rows.append({
             "id": sample.id, "family": family, "mode": mode, "seed": int(seed), "epoch": sample.epoch, "condition": condition,
-            "model": log.eval.model, **settings, "outcome": outcome,
+            "model": log.eval.model, **settings, "providers": providers_of(sample), "outcome": outcome,
             "solved": score.value["solved"] if score else 0.0, "reward": score.value["reward"] if score else 0.0,
             "assistant_turns": sum(m.role == "assistant" for m in sample.messages),
             "tool_calls": sum(m.role == "tool" for m in sample.messages),

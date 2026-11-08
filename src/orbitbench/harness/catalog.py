@@ -31,6 +31,10 @@ TWIN_LINES = tuple((f"{family}_twin", mode, n) for family, mode, n in TRAP_LINES
 V10_LINES = V01_LINES + LEVEL_FOUR_LINES + TRAP_LINES
 # Three trivial questions, played with every run and never counted in its results: a failure means a broken harness.
 CANARY_LINES = (("canary", "values", 3),)
+# After the v1.0 freeze, under docs/lunar_baseline_rule.md: the lunar impact date, 15 seeds built in the table.
+LUNAR_LINES = (("lunar_impact", "values", 15),)
+# The same line on the private test seeds (30 consecutive integers, `--first-seed` is the first of them, see freeze.md).
+LUNAR_TEST_LINES = (("lunar_impact", "values", 30),)
 
 
 def instances(lines=V01_LINES, first_seed: int = 0, per_line: int | None = None,

@@ -43,3 +43,26 @@ def test_the_analysis_pairs_instances_by_id_and_never_prints_one(tmp_path):
 
 def test_the_command_line_parses_analyze():
     assert parse(["analyze", "runs/a", "runs/b"]).dirs == [Path("runs/a"), Path("runs/b")]
+
+
+def test_failures_are_split_into_refusal_wrong_answer_and_no_answer():
+    ids = [f"lunar_impact:values:{n}" for n in range(5)]
+    outcomes = ["solved", "wrong_status", "values_mismatch", "invalid_format", "limit_message"]
+    rows = []
+    for i, o in zip(ids, outcomes):
+        r = row(i, "B", o == "solved")
+        r["outcome"] = o
+        r["providers"] = "Crusoe|Near AI" if o == "solved" else "Crusoe"
+        rows.append(r)
+    text = analyze_rows(rows)
+    lines = text.splitlines()
+    head = next(n for n, ln in enumerate(lines) if ln.startswith("Why episodes did not succeed"))
+    cells = lines[head + 3].split()                               # after the blank line and the column header
+    # model, condition, episodes, then solved, refused, wrong answer, no usable answer, plan or run failed, other
+    assert cells[:3] == ["m", "B", "5"] and cells[3:] == ["1", "1", "1", "2", "0", "0"]
+    assert "m: Crusoe 5, Near AI 1" in text
+
+
+def analyze_rows(rows):
+    from orbitbench.harness.analysis import render
+    return render(rows)

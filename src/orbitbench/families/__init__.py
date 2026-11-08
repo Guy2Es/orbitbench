@@ -11,6 +11,7 @@ from orbitbench.families.hohmann import HohmannFamily
 from orbitbench.families.hohmann_or_bielliptic_plan import HohmannOrBiellipticPlanFamily
 from orbitbench.families.ill_posed import KINDS, IllPosedFamily
 from orbitbench.families.j2_drift import J2DriftFamily
+from orbitbench.families.lunar_impact import LunarImpactFamily
 from orbitbench.families.plane_change_budget_plan import PlaneChangeBudgetPlanFamily
 from orbitbench.families.plane_change_dv import PlaneChangeDvFamily
 from orbitbench.families.rendezvous_phasing import RendezvousPhasingFamily
@@ -25,7 +26,7 @@ FAMILIES = {family.name: family for family in (HohmannFamily(), PlaneChangeDvFam
                                                        PlaneChangeBudgetPlanFamily(), FrameTrapFamily(),
                                                        GuessTrapTransferFamily(), SunSynchronousFamily(),
                                                        RendezvousPhasingFamily(), FiniteBurnRaiseFamily(), CanaryFamily(),
-                                                       TsiolkovskyFamily(), EscapeVelocityFamily(),
+                                                       TsiolkovskyFamily(), EscapeVelocityFamily(), LunarImpactFamily(),
                                                        *(IllPosedFamily(k, w) for k in KINDS for w in (False, True)))}
 
 

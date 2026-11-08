@@ -59,3 +59,47 @@ k attempts per instance. The hypotheses H1 to H6 and the primary comparison stay
 - The v1.0 tolerances, reward, limits and prompts are frozen after the calibration pilot, in `freeze.md`, before the run.
 - Results are reported by family and by level with intervals, including null and unfavourable ones. Level-wise
   intervals are exploratory.
+
+### 8 November 2026: the lunar impact family, and which comparison it serves
+
+**What is added.** One family outside the v1.0 catalog, `lunar_impact` (level 4): the time at which a low lunar orbit
+decays to the surface, GRGM900C degree and order 50, Earth and Sun point masses, 60-day horizon, tolerance 1 day. It
+exists because the answer needs data a model can neither recall nor download, so that a model with only Python cannot
+close the task with a formula; `docs/lunar_baseline_rule.md` records why it was chosen (Python baseline: no impact on any
+of 10 seeds, while GMAT impacts on all 10) and how its reference was checked independently of GMAT.
+
+**Which question it serves.** Question 3 of the list above (the value of the tool, C minus B), on one task type, with
+small and cheap models. It does not answer question 1 (the reinforcement-learning arms) or question 2, and it does not
+replace the v1.0 run. A result on this family is reported as a result on this family only.
+
+**Declared before the run on the test seeds.**
+- Conditions: B (Python only, no network) and C (Python and the GMAT server); A is not run, the task cannot be answered
+  from memory.
+- Primary comparison: the paired difference C minus B in the share of instances solved, per model, with a 95 %
+  bootstrap interval over the instances (resampling instances, the k attempts of an instance kept together).
+- Models: gpt-oss-120b, Qwen3.7 Flash, DeepSeek V4 Flash and Gemini 2.5 Flash Lite through OpenRouter, the provider
+  recorded in every exported row. Claude models are not run on it in this entry.
+- Instances: the private test seeds of the family (30), attempts k = 3, message limit 60 (as frozen), token guard 1 000 000
+  tokens per episode, reported with the results and not a declared limit.
+- Seeds are screened by the rule of `docs/lunar_baseline_rule.md` of 8 November 2026 (the date moves by less than 0.3
+  day under a 100 arcsecond change of the Moon orientation) before they enter the test set.
+- Reported as they come, with the failures read one by one: no answer, invalid answer, message limit, wrong date.
+  An honest `ill_posed` ("no data") in B is graded as a failure by the grader; it is counted and shown apart.
+- Development results (5 seeds, one attempt, 4 models: B 0 of 20, C 11 of 20) are exploratory and are not part of the
+  test results.
+
+### 8 November 2026: the models of the v1.0 run are changed
+
+**Change.** Claude Haiku 5.5 and Claude Sonnet 5.5 are removed from the models declared on 2 November 2026 (and Claude
+Opus 5.5 with them). The v1.0 run, including the lunar line, uses four models through OpenRouter: gpt-oss-120b,
+Qwen3.7 Flash, DeepSeek V4 Flash and Gemini 2.5 Flash Lite. The provider served is recorded in every exported row.
+
+**Why.** Cost, measured by the maintainer: 27 million tokens on the Anthropic API in batch mode (half price) cost almost
+5 USD, while 11 million tokens on OpenRouter cost 0.37 USD. Claude Haiku 5.5 spends many more tokens per solved instance
+than the other models, so its real cost is far above its price per token. The four models are also from four different
+families, which makes the comparison wider.
+
+**What stays.** The v0.1 results with Claude Haiku 5.5 and Claude Sonnet 5.5 are kept as they are and reported as v0.1
+results. The hypotheses H1 to H6, the primary comparison and the budget ceiling per run are unchanged; the budget of about
+30 USD is now an upper bound, not a plan. Nothing here is a conclusion about Claude models: they are not part of the
+v1.0 run.

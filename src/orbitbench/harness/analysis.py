@@ -79,6 +79,20 @@ def _split(rows: list[dict]) -> dict[tuple[str, str], dict[str, dict]]:
     return dict(out)
 
 
+FAILURE_KINDS = (
+    ("refused", ("wrong_status",)),                      # answered ill_posed on a task that can be answered: an honest "cannot"
+    ("wrong answer", ("values_mismatch", "constraints_violated", "missed_trap")),
+    ("no usable answer", ("invalid_format", "limit_message", "limit_token", "limit_time", "error")),
+    ("plan or run failed", ("invalid_plan", "run_failed", "replay_error")),
+)
+
+
+def failure_kind(outcome: str) -> str:
+    if outcome == "solved":
+        return "solved"
+    return next((kind for kind, names in FAILURE_KINDS if outcome in names), "other")
+
+
 def _pct(x: float) -> str:
     return f"{100 * x:.0f} %"
 
@@ -138,6 +152,25 @@ def render(rows: list[dict]) -> str:
         for (model, cond), rs in sorted(by_key.items()):
             out.append(f"{model:30} {cond:4} {len(rs):>8} {sum(bool(r.get('claimed_verified')) for r in rs):>10} "
                        + " ".join(f"{sum(bool(r.get(f)) for r in rs):>18}" for f in FLAGS))
+    kinds = [k for k, _ in FAILURE_KINDS] + ["other"]
+    out += ["", "Why episodes did not succeed (a refusal is an honest ill_posed, graded as a failure on a task that can be "
+            "answered; it is not an invented answer)", ""]
+    out.append(f"{'model':30} {'cond':4} {'episodes':>8} {'solved':>7} " + " ".join(f"{k:>18}" for k in kinds))
+    by_kind: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    for r in episodes:
+        by_kind[(r["model"], r["condition"])].append(r)
+    for (model, cond), rs in sorted(by_kind.items()):
+        counts = [sum(failure_kind(r["outcome"]) == k for r in rs) for k in ["solved"] + kinds]
+        out.append(f"{model:30} {cond:4} {len(rs):>8} " + " ".join(f"{c:>7}" if i == 0 else f"{c:>18}" for i, c in enumerate(counts)))
+    if any(r.get("providers") for r in episodes):
+        out += ["", "Providers that served each model (episodes touched by each; a model served by several providers is "
+                "not one fixed system)", ""]
+        served: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+        for r in episodes:
+            for name in filter(None, (r.get("providers") or "").split("|")):
+                served[r["model"]][name] += 1
+        for model, names in sorted(served.items()):
+            out.append(f"{model}: " + ", ".join(f"{n} {c}" for n, c in sorted(names.items())))
     outcomes: dict[tuple[str, str], dict[str, int]] = defaultdict(lambda: defaultdict(int))
     for r in episodes:
         outcomes[(r["model"], r["condition"])][r["outcome"]] += 1
