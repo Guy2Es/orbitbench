@@ -129,3 +129,56 @@ If its text is changed later, the hash is updated here, with the date, before an
   is not scored as a failed answer.
 - Failures are reported in four kinds (refused, wrong answer, no usable answer, plan or run failed), a refusal being an honest
   `ill_posed` that the grader scores as a failure.
+
+## Result of the lunar test run (9 November 2026): DeepSeek V4 Flash not evaluable
+
+Protocol, tools and prompts are unchanged. The run (`scripts/run_lunar_test.py --ceiling 8.0`) completed gpt-oss-120b,
+Gemini 2.5 Flash Lite and Qwen3.7 Flash in B and C (6 steps, 4.07 USD of the 8 USD ceiling), then stopped at DeepSeek V4 Flash
+in C.
+
+- **What failed.** OpenRouter answered `404 - No endpoints found that support image input`. In episode
+  `lunar_impact:values:636226495` the model called `plot_trajectory_3d`, a tool of the gmat-mcp server that returns an image;
+  the image went back into the conversation, and DeepInfra, the pinned provider, serves DeepSeek V4 Flash as text only.
+  The other errors of that run (seeds 494, 496, 497) are cancellations that followed. 9 of 90 samples were logged.
+- **Decision (maintainer).** The tools of condition C are not modified, and no image is removed or replaced, so every
+  model keeps the same tools and the same inputs. DeepSeek V4 Flash is set aside as **not evaluable**: the reason is not
+  that the model fails, but that its results cannot be used. With the pinned provider it cannot receive the image a tool may
+  return, so the episodes that reach such a tool end in an error, not in an answer, and the cell would not measure the
+  same thing as the others. It has no score in B or in C. DeepSeek V4 Flash B was not run. The 13 episodes written in
+  `runs/lunar-test-dsflash-C/episodes.jsonl` are kept for audit and counted in no result. The rule above (an `error` episode is
+  rerun) was not applied to them: a rerun hits the same refusal.
+- **Do not relaunch the command as is**: it would replay `dsflash-C` and fail the same way.
+- **Qwen3.7 Flash** called one plotting tool in the whole run (`plot_orbital_elements`, seed 636226501, epoch 3); its endpoint
+  accepts images and the episode ran normally. gpt-oss-120b and Gemini 2.5 Flash Lite called none.
+- **Measured success rate over 90 episodes** (3 epochs x 30 seeds): gpt-oss-120b B 0 % and C 58 %; Gemini 2.5 Flash Lite B 0 %
+  and C 43 %; Qwen3.7 Flash B 0 % and C 59 % (`runs/lunar_test_run.log`).
+- **v1.0**: condition C of v1.0 has the same exposure for DeepSeek V4 Flash through DeepInfra, because the plotting tools are
+  the same. It is set aside there as well, for the same reason (next entry).
+
+## Run of v1.0 on the test seeds (9 November 2026): settings declared before the run
+
+Nothing frozen above changes. No episode of v1.0 had run on the test seeds when this entry was written.
+
+- **Models**: gpt-oss-120b (provider Crusoe, pinned, no fallback), Gemini 2.5 Flash Lite and Qwen3.7 Flash, through
+  OpenRouter, with `--deny-data-collection`. **DeepSeek V4 Flash is set aside**, for the reason of the entry above (its
+  results cannot be used, which is not a judgment on the model). It may be added later with the same protocol, in the order
+  A, B, C, and reported as it comes; nothing in this run depends on it.
+- **Suites**: `v10` with 5 seeds per line (79 instances: the three trap lines have 3 seeds in the catalog, which is not
+  changed), then `twins` (9) and `canary` (3). Condition A plays the instances of levels 1 and 2 (34 + 9 + 3); B and C play
+  all of them. One attempt per instance (k = 1), message limit 60, token guard 1 000 000, the provider's default sampling.
+- **Test seeds**: the first seed is `ORBITBENCH_TEST_FIRST_SEED_V10` in `.env`, ignored by git, and is not written here.
+  Checked on 9 November 2026: six digits, so below 1 000 000 (the training seeds of `docs/rl_plan.md` start there), no overlap
+  with the development seeds 0 to 9 and none with the seeds of the v0.1 test run. The same first seed is used by `v10`, `twins`
+  and `canary`.
+- **Run**: `scripts/run_v10_test.py --ceiling <USD>`, one step per (model, condition, suite) from the cheapest model up, a step
+  not started if it could cross the ceiling, resumable. Upper bound of the whole plan: 3.33 USD (the measured upper bound per
+  instance times 1.25; condition A is an assumption, not measured). The ceiling is set at launch.
+- **Reported**: kinds of failure as above; an `error` episode is rerun and the reruns are counted; the failures are read one by
+  one; the results are per family and per level with intervals, level-wise ones being exploratory.
+- **Not tested**: H4 (reliability) needs at least two attempts, so it is not tested by this run. H5 uses the false-claim rules,
+  validated provisionally (`docs/claims_validation.md`); `claim_unconverged` has not been tested on an episode that did not
+  converge.
+- **Human reviews, recorded on 9 November 2026 on the maintainer's confirmation** (both were done before this date and not
+  written down then): the review of the new statements of v1.0, which makes the freeze final, and the author's reading of the
+  disputed episodes of the false-claim validation. For `r17` (two answer blocks), see the decision in
+  `docs/claims_validation.md`.

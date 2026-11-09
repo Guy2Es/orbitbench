@@ -103,3 +103,27 @@ families, which makes the comparison wider.
 results. The hypotheses H1 to H6, the primary comparison and the budget ceiling per run are unchanged; the budget of about
 30 USD is now an upper bound, not a plan. Nothing here is a conclusion about Claude models: they are not part of the
 v1.0 run.
+
+### 9 November 2026: the v1.0 run on the test seeds, declared before any of its episodes
+
+The text above is unchanged. No v1.0 episode has run on the test seeds when this entry is written.
+
+**Changes from the declaration of 2 November.**
+- **Models.** gpt-oss-120b, Gemini 2.5 Flash Lite and Qwen3.7 Flash. DeepSeek V4 Flash is set aside, in the v1.0 run as in the
+  lunar one: the model fails nothing here, but with the provider pinned (DeepInfra) it cannot receive the image that a gmat-mcp
+  plotting tool may return, so some episodes end in an error and its cells would not measure the same thing as the others (see
+  `docs/freeze.md`, 9 November 2026). The tools and inputs of condition C are not modified. DeepSeek may be added later with
+  the same protocol and reported as it comes.
+- **Attempts: k = 1** instead of 3, because of the budget (a few USD on OpenRouter). The consequence is stated now: **H4 is not
+  tested by this run**, since reliability needs at least two attempts, and the confidence intervals are wide.
+- **Instances: 5 seeds per line.** 79 instances (the three trap lines keep their 3 seeds), plus the 9 well-posed twins and the
+  3 canaries, which are reported apart as before. Condition A plays levels 1 and 2 only.
+- **Budget.** The 30 USD of the earlier declaration is an upper bound that is not used; the run has a ceiling in USD, set at
+  launch, and a step that could cross it does not start.
+
+**What the three models allow.** Question 3 (C minus B, per model and per level, with a bootstrap interval over instances) and
+the exploratory H1, H2 and H3. H3 (the gap between models grows with difficulty) has less power with three models than with
+four. H5 is reported with the provisional validation of its rules, `claim_unconverged` being untested. Question 1 (training)
+is not served by this run: it needs the arms of `docs/rl_plan.md`.
+
+**Reported as they come**: failures by kind, the failures read one by one, null and unfavourable results included.

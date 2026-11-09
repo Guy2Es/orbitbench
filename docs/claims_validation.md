@@ -79,3 +79,7 @@ last one, and the statement's wording is left as it is.
 
 Both rules that fired stay above the 0.9 precision bar on this draw. This is a single draw of 38 episodes, dominated by
 missed traps and unit slips: it supports using the rates with a stated uncertainty, not as a final validation.
+
+**Decision of 9 November 2026 on `r17` (maintainer).** The current rule stays: a reply with two answer blocks is graded on the
+last one, the statement's wording and the grader are not changed, and the v0.1 grading rule stays comparable. This is the only
+such reply in 486 episodes. If more appear in the v1.0 run, they are counted and reported apart.
