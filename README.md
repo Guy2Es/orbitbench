@@ -4,6 +4,11 @@ A benchmark and RL environment for mission analysis. A model answers an astrodyn
 answer; the grader replays the maneuver plan in NASA GMAT through [gmat-mcp](https://github.com/Guy2Es/GMAT-MCP)
 and checks the final state, so the reward comes from a simulation and not from a judge.
 
+The reinforcement-learning side (`src/orbitbench/rl/`: training instances and the reward function, and the protocol in
+[docs/rl_plan.md](docs/rl_plan.md)) is kept here for a separate, later study. No model is trained in the reports of this
+repository: the v1.0 report evaluates three models as they are, and hypothesis H6 and question 1 of the preregistration
+(training) are not tested by it.
+
 **Status: v1.0 run on the test seeds, reported.** Version 1.0 holds 17 lines (79 instances at 5 seeds per line, plus
 9 well-posed twins and 3 canaries reported apart), levels 1 to 4, ill-posed statements, finite burns and a measure of
 false claims, in three conditions: A (no tool, levels 1 and 2), B (Python alone) and C (Python plus gmat-mcp). The

@@ -1,3 +1,6 @@
+> Status (9 November 2026): this protocol belongs to a separate study, to be reported in a later article. It is not part of the
+> v1.0 report, which trains no model. It is kept unchanged below, with the preregistration of H6 and question 1.
+
 # RL training of a small open model: protocol (written before the first training run)
 
 Question: does a small open model improve on OrbitBench after reinforcement learning on analytical families, and does the
