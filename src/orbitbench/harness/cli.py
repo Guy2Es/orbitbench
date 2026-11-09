@@ -36,6 +36,8 @@ def parse(argv=None) -> argparse.Namespace:
     report.add_argument("dirs", nargs="+", type=Path)
     analyze = sub.add_parser("analyze", help="success rates with intervals and the C minus B difference, from runs")
     analyze.add_argument("dirs", nargs="+", type=Path)
+    analyze.add_argument("--exclude", type=Path, help="private JSON {run folder: [episode ids]} of episodes counted in no result")
+    analyze.add_argument("--by-level", action="store_true", help="add the tables by level and the paired differences")
     return p.parse_args(argv)
 
 
@@ -76,7 +78,7 @@ def report(args: argparse.Namespace) -> int:
 
 def analyze(args: argparse.Namespace) -> int:
     from orbitbench.harness.analysis import analyze as render_analysis
-    print(render_analysis(args.dirs))
+    print(render_analysis(args.dirs, args.exclude, args.by_level))
     return 0
 
 

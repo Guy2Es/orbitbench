@@ -6,6 +6,7 @@ printed."""
 import math
 import random
 from collections import defaultdict
+from pathlib import Path
 
 from orbitbench.harness.claims import FLAGS
 from orbitbench.harness.report import TOKEN_KINDS, load
@@ -180,5 +181,61 @@ def render(rows: list[dict]) -> str:
     return "\n".join(out)
 
 
-def analyze(dirs) -> str:
-    return render(load(dirs))
+def family_levels() -> dict[tuple[str, str], int]:
+    """Level of each line of v1.0 and of the twins, by (family, mode): a family may have a values and a plan line."""
+    from orbitbench.harness.catalog import TWIN_LINES, V10_LINES, instances
+    return {(i.family, i.mode): i.level for i in instances(V10_LINES + TWIN_LINES, 0, 1)}
+
+
+def render_levels(rows: list[dict], levels: dict[tuple[str, str], int]) -> str:
+    """Success by level (exploratory: H1, H3), the paired differences C-B and B-A by level and by line (H1, H2)."""
+    rows = [{**r, "level": levels[(r["family"], r["mode"])]} for r in _collapse(rows) if (r["family"], r["mode"]) in levels]
+    groups = _split(rows)
+    models = sorted({m for m, _ in groups})
+    out = ["By level: solved / instances, 95 % Wilson interval (exploratory: H1, H3)", ""]
+    out.append(f"{'model':30} {'cond':4} {'level':>5} {'solved':>7} {'interval':>14}")
+    for (model, cond), eps in sorted(groups.items()):
+        for level in sorted({r["level"] for r in eps.values()}):
+            rs = [r for r in eps.values() if r["level"] == level]
+            k = round(sum(r["solved"] for r in rs))
+            lo, hi = wilson(k, len(rs))
+            out.append(f"{model:30} {cond:4} {level:>5} {f'{k}/{len(rs)}':>7} {f'{_pct(lo)} to {_pct(hi)}':>14}")
+    for title, hi_c, lo_c, max_level in (("C minus B (H1: where does the tool help?)", "C", "B", 9),
+                                          ("B minus A, levels 1 and 2 (H2: what does Python alone add?)", "B", "A", 2)):
+        out += ["", f"{title}, paired, 95 % interval (levels are exploratory)", ""]
+        out.append(f"{'model':30} {'level':>9} {'pairs':>5} {'solved':>8} {'interval':>16}")
+        for model in models:
+            x, y = groups.get((model, hi_c), {}), groups.get((model, lo_c), {})
+            ids = sorted(set(x) & set(y))
+            for label, sel in [("all", lambda i: True)] + [(f"L{lv}", (lambda lv: lambda i: x[i]["level"] == lv)(lv))
+                                                          for lv in sorted({x[i]["level"] for i in ids}) if lv <= max_level]:
+                keep = [i for i in ids if x[i]["level"] <= max_level and sel(i)]
+                if not keep:
+                    continue
+                d = hierarchical_bootstrap(_by_family(keep, lambda i: x[i]["solved"] - y[i]["solved"]))
+                out.append(f"{model:30} {label:>9} {len(keep):>5} {d[0]:>+8.3f} {f'{d[1]:+.3f} to {d[2]:+.3f}':>16}")
+    out += ["", "C minus B by line: solved C / solved B / instances (H1, per family, no firm conclusion)", ""]
+    out.append(f"{'line':42} {'lvl':>3} " + " ".join(f"{m.split('/')[-1][:16]:>18}" for m in models))
+    for fam, mode in sorted({(r["family"], r["mode"]) for r in rows}):
+        cells = []
+        for model in models:
+            b, c = groups.get((model, "B"), {}), groups.get((model, "C"), {})
+            ids = [i for i in set(b) & set(c) if (b[i]["family"], b[i]["mode"]) == (fam, mode)]
+            cells.append(f"{sum(c[i]['solved'] for i in ids):g}/{sum(b[i]['solved'] for i in ids):g}/{len(ids)}")
+        out.append(f"{fam + '/' + mode:42} {levels[(fam, mode)]:>3} " + " ".join(f"{c:>18}" for c in cells))
+    return "\n".join(out)
+
+
+def load_exclusions(path) -> set[tuple[str, str]]:
+    """{(run folder name, episode id)} of the episodes counted in no result (see docs/freeze.md); the file is private."""
+    import json
+    return {(run, i) for run, ids in json.loads(open(path, encoding="utf-8").read()).items() for i in ids}
+
+
+def analyze(dirs, exclude=None, by_level: bool = False) -> str:
+    rows = load(dirs)
+    if exclude:
+        out = load_exclusions(exclude)
+        rows = [r for r in rows if (Path(r["run"]).name, r["id"]) not in out]
+    text = render(rows)
+    return text + ("\n\n" + render_levels(rows, family_levels()) if by_level else "")

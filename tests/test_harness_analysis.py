@@ -66,3 +66,17 @@ def test_failures_are_split_into_refusal_wrong_answer_and_no_answer():
 def analyze_rows(rows):
     from orbitbench.harness.analysis import render
     return render(rows)
+
+
+def test_excluded_episodes_are_counted_in_no_result_and_the_levels_table_is_built(tmp_path):
+    run = tmp_path / "run-x"
+    run.mkdir()
+    ids = [f"hohmann:values:{900000 + i}" for i in range(6)]
+    rows = [row(i, "B", True) for i in ids] + [row(i, "C", n < 3) for n, i in enumerate(ids)]
+    (run / "episodes.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+    exclude = tmp_path / "excluded.json"
+    exclude.write_text(json.dumps({"run-x": [ids[5]]}), encoding="utf-8")
+    text = analyze([run], exclude=exclude, by_level=True)
+    assert "5/5" in text and "3/5" in text and "By level" in text and "C minus B by line" in text
+    assert "900000" not in text
+    assert parse(["analyze", "r", "--exclude", "e.json", "--by-level"]).by_level is True
