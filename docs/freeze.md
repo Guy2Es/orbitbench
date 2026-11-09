@@ -166,7 +166,8 @@ Nothing frozen above changes. No episode of v1.0 had run on the test seeds when 
 - **Suites**: `v10` with 5 seeds per line (79 instances: the three trap lines have 3 seeds in the catalog, which is not
   changed), then `twins` (9) and `canary` (3). Condition A plays the instances of levels 1 and 2 (34 + 9 + 3); B and C play
   all of them. One attempt per instance (k = 1), message limit 60, token guard 1 000 000, the provider's default sampling.
-- **Test seeds**: the first seed is `ORBITBENCH_TEST_FIRST_SEED_V10` in `.env`, ignored by git, and is not written here.
+- **Test seeds**: the first seed was `ORBITBENCH_TEST_FIRST_SEED_V10` in `.env`, ignored by git, and was not written here until the
+  results were published; it is now in [test_seeds.md](test_seeds.md) (9 November 2026).
   Checked on 9 November 2026: six digits, so below 1 000 000 (the training seeds of `docs/rl_plan.md` start there), no overlap
   with the development seeds 0 to 9 and none with the seeds of the v0.1 test run. The same first seed is used by `v10`, `twins`
   and `canary`.

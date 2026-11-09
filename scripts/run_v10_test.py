@@ -7,7 +7,8 @@ DeepSeek V4 Flash is not part of this run (docs/freeze.md, 9 November 2026).
 
 Before each step the OpenRouter account's total usage is read; a step starts only if the spend since the run began plus
 the upper bound of that step stays under the ceiling. Interrupted runs resume: relaunch the same command.
-The first test seed is read from ORBITBENCH_TEST_FIRST_SEED_V10 in .env and is never printed.
+The first test seed is read from ORBITBENCH_TEST_FIRST_SEED_V10 in .env and is not printed by this script (published in
+docs/test_seeds.md once the results were out).
 Usage: python scripts/run_v10_test.py --ceiling <USD> [--dry-run]
 `--dry-run` prints the plan and the upper bounds, reads nothing from the account and starts nothing."""
 import argparse
