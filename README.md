@@ -4,10 +4,12 @@ A benchmark and RL environment for mission analysis. A model answers an astrodyn
 answer; the grader replays the maneuver plan in NASA GMAT through [gmat-mcp](https://github.com/Guy2Es/GMAT-MCP)
 and checks the final state, so the reward comes from a simulation and not from a judge.
 
-**Status: v0.1, in progress.** Ten task families (11 lines, 61 instances), impulsive burns only, two conditions:
-B (Python alone) and C (Python plus gmat-mcp). The tolerances, reward, limits and prompts are frozen
-([docs/freeze.md](docs/freeze.md)). The hypotheses were recorded in [docs/hypotheses.md](docs/hypotheses.md) before
-any model was run.
+**Status: v1.0 run on the test seeds, reported.** Version 1.0 holds 17 lines (79 instances at 5 seeds per line, plus
+9 well-posed twins and 3 canaries reported apart), levels 1 to 4, ill-posed statements, finite burns and a measure of
+false claims, in three conditions: A (no tool, levels 1 and 2), B (Python alone) and C (Python plus gmat-mcp). The
+tolerances, reward, limits and prompts are frozen ([docs/freeze.md](docs/freeze.md)). The hypotheses were recorded in
+[docs/hypotheses.md](docs/hypotheses.md) before any model was run. The results of v1.0 are in
+[docs/results_v10.md](docs/results_v10.md); the earlier v0.1 results are kept below.
 
 ## Requirements
 
@@ -46,7 +48,25 @@ is the case for every run so far: no sampling setting is passed to any model), `
 `reasoning_effort`, whether the batch API was used, the message and token limits, the number of epochs and the
 Inspect version. Two runs are comparable only if these columns match.
 
-## Results so far
+## Results of v1.0 (9 November 2026)
+
+gpt-oss-120b, Gemini 2.5 Flash Lite and Qwen3.7 Flash through OpenRouter, one attempt per instance, 79 instances (A: 34).
+DeepSeek V4 Flash was set aside, then dropped (see [docs/freeze.md](docs/freeze.md)). Five Gemini episodes that ended on a
+provider failure are counted in no result.
+
+| Model | A | B | C | C minus B (95 % interval) |
+|---|---|---|---|---|
+| gpt-oss-120b | 4/34 | 42/79 | 51/79 | +0.11 (-0.06 to +0.31) |
+| Gemini 2.5 Flash Lite | 0/34 | 17/74 | 17/79 | 0.00 (-0.18 to +0.18) |
+| Qwen3.7 Flash | 11/34 | 47/79 | 29/79 | -0.23 (-0.42 to -0.04) |
+
+With k = 1 and these sample sizes the intervals are wide and the tables by level and by line are exploratory. Most of the
+failures are not about orbital mechanics (empty replies, provider errors, tool loops that hit the message limit); they are
+listed in [docs/freeze.md](docs/freeze.md) and [docs/results_v10.md](docs/results_v10.md). Reproduce:
+`python -m orbitbench.harness analyze runs/v10-test-*-v10 --by-level` (the 5 excluded episodes need the private file
+written by `scripts/mark_unavailable.py`).
+
+## Results of v0.1
 
 Claude Haiku 5.5 and Claude Sonnet 5.5, one attempt per instance, 61 instances per condition, on test seeds that
 were not used to build or tune anything. Intervals are 95 % Wilson intervals; the difference is paired and uses a

@@ -15,12 +15,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 # (short name, OpenRouter model, pinned provider or None, upper-bound USD of one condition over 90 episodes, cache read at
-# the full input price: docs/freeze.md, v1.1). Order: cheapest first.
+# the full input price: docs/freeze.md, v1.1). Order: cheapest first. DeepSeek V4 Flash is dropped (docs/freeze.md, 9 Nov 2026).
 MODELS = [
     ("gptoss", "openai/gpt-oss-120b", "Crusoe", {"B": 0.01, "C": 0.30}),
     ("geminilite", "google/gemini-2.5-flash-lite", None, {"B": 0.05, "C": 0.70}),
     ("qwenflash", "qwen/qwen3.7-flash", None, {"B": 0.95, "C": 1.00}),
-    ("dsflash", "deepseek/deepseek-v4-flash", "DeepInfra", {"C": 2.60, "B": 2.80}),
 ]
 
 

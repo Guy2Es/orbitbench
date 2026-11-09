@@ -127,3 +127,12 @@ four. H5 is reported with the provisional validation of its rules, `claim_unconv
 is not served by this run: it needs the arms of `docs/rl_plan.md`.
 
 **Reported as they come**: failures by kind, the failures read one by one, null and unfavourable results included.
+
+### 9 November 2026: correction of an interval quoted on 2 November
+
+The amendment of 2 November quotes, for Claude Haiku 5.5 on v0.1, a paired difference C minus B of +0.049 with an interval
+from -0.066 to +0.164. That interval came from a paired bootstrap over instances alone. The declared method is the
+hierarchical bootstrap (families, then instances); with it, `python -m orbitbench.harness analyze` on the final v0.1 runs
+gives -0.089 to +0.210 (the figure of the README), the point estimate being the same. It still contains zero. The text of
+2 November is not edited. The DeepSeek V4 Flash mentions above are superseded by `docs/freeze.md` (9 November 2026,
+"DeepSeek V4 Flash dropped").

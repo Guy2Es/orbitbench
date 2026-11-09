@@ -225,3 +225,12 @@ by one. The decisions below were taken by the maintainer on 9 November 2026.
   Gemini 2/3 everywhere; they flag no anomaly.
 - **Solved over `v10`** (before removing the 5 episodes above): gpt-oss A 4/34, B 42/79, C 51/79; Gemini A 0/34, B 17/79
   (17/74 without the 5), C 17/79; Qwen A 11/34, B 47/79, C 29/79. H4 is not tested and DeepSeek V4 Flash stays set aside.
+
+## DeepSeek V4 Flash dropped (9 November 2026)
+
+On the maintainer's decision, DeepSeek V4 Flash leaves the benchmark: it is no longer "set aside, may be added later" but
+dropped, for the lunar line and for v1.0. It has no score anywhere. Reason unchanged (the pinned provider cannot receive the
+image a gmat-mcp plotting tool may return, so its condition C episodes end in an error); this is not a judgment on the
+model. Its entry is removed from `scripts/run_lunar_test.py` so that a relaunch cannot replay it; the 13 partial episodes in
+`runs/lunar-test-dsflash-C/` and the cost-sample runs `runs/cost-v10-dsflash-*` stay for audit only and are counted in no
+result. The earlier entries are not edited: they record what was decided at the time.
