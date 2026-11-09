@@ -49,7 +49,9 @@ from episodes that never answer: in C, 33 of 79 end on the message or token limi
 - **H5 (failures presented as successes).** Measurable. Of the episodes that claim `verified: true`, the answer is contradicted
   by the grader in: Gemini B 13 of 28, C 6 of 21; gpt-oss B 13 of 33, C 15 of 59; Qwen B 2 of 28, C 4 of 32. `claim_unchecked`
   fires only in A, where there is no tool (Gemini 4, gpt-oss 1, Qwen 7), and once in C. `claim_unconverged` fires once in 576
-  (Qwen, C, graded `solved`): the rule is neither confirmed nor refuted by this run.
+  (Qwen, C, graded `solved`). The author read it (docs/claims_validation.md, 9 November 2026): the model abandoned a failed
+  targeting call, applied the burn by hand and replayed it to a converged state, so the flag is a false positive; one case
+  supports no rate, and the rule is not changed for v1.0.
 - **H6 and question 1 (training).** Not served by this run.
 
 ## The contradicted claims of gpt-oss-120b, read one by one

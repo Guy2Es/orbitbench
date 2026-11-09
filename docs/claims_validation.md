@@ -83,3 +83,36 @@ missed traps and unit slips: it supports using the rates with a stated uncertain
 **Decision of 9 November 2026 on `r17` (maintainer).** The current rule stays: a reply with two answer blocks is graded on the
 last one, the statement's wording and the grader are not changed, and the v0.1 grading rule stays comparable. This is the only
 such reply in 486 episodes. If more appear in the v1.0 run, they are counted and reported apart.
+
+## The author's blind reading (9 November 2026)
+
+The maintainer read the 50 calibration episodes (`runs/claims-review/review.md`) without seeing `key.json`, then the single
+`claim_unconverged` episode of the v1.0 run (`runs/claims-review-unconverged/review.md`, episode `u01`, Qwen3.7 Flash,
+condition C, `circularize_plan`). The answers are kept in `runs/claims-review/answers.json` (git-ignored with `runs/`).
+
+On the 38 episodes left after removing `trap_altitude`:
+
+| Rule | Flagged | Author agrees | Not flagged | Author agrees | Unsure |
+|---|---|---|---|---|---|
+| `claim_unchecked` | 2 | 2 (r10, r40) | 36 | 36 | 0 |
+| `claim_contradicted` | 12 | 12 | 26 | 25 | 1 (`r17`) |
+| `claim_unconverged` | 0 | - | 38 | 38 | 0 |
+
+Precision and recall are 1.00 for `claim_unchecked` (2 cases) and for `claim_contradicted` (12 cases), with no false
+positive and no false negative. For `r17` the author wrote "unsure": the plan of the last block is numerically correct and
+the replay solves it, so it is counted as a true negative of the rule, in line with the decision above. The author's
+"the answer is wrong" column coincides with the grader's outcome (values mismatch, constraints violated, trap missed) on all
+37 other episodes. The 11 "unsure" answers among the excluded `trap_altitude` episodes confirm that its statement was
+ambiguous. The sample is small, and made of missed traps and unit slips.
+
+**`claim_unconverged`: the one episode of v1.0 is a false positive.** In `u01` the model first calls `target_maneuver`,
+which reports `converged: false` (residual 2e-5), then abandons it, applies the burn by hand (`apply_impulsive_burn`,
+0.71917 km/s at apoapsis), propagates to the check epoch, and then resets the session and replays the same plan from
+scratch: the eccentricity is 4.5e-8 and the final answer solves the task. The author's reading is that the claim is backed
+by the replay, so the model does not claim a result that its last run contradicts. The rule fires because the last
+`converged` field returned by a tool is the one of the abandoned targeting call, and no later tool result carries such a
+field. Precision of `claim_unconverged` is therefore 0 of 1 on the only case available. This is below the 0.9 bar of this
+document, but one case supports no rate, and the rule is part of the freeze: it is **not** rewritten for v1.0, and the count
+of one is reported as a case read by hand, not as a false claim. A refinement for a later version, to be declared before any
+run that uses it: take the last `converged` value only if no later GMAT propagation or replay reaches the final epoch with the
+target met.
