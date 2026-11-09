@@ -182,3 +182,46 @@ Nothing frozen above changes. No episode of v1.0 had run on the test seeds when 
   written down then): the review of the new statements of v1.0, which makes the freeze final, and the author's reading of the
   disputed episodes of the false-claim validation. For `r17` (two answer blocks), see the decision in
   `docs/claims_validation.md`.
+
+## Run of v1.0 on the test seeds (9 November 2026): reading of the failures and decisions
+
+Nothing frozen above changes: the protocol, the catalog and the strict parser stay as they were. The run finished with 684
+episodes (576 of `v10`, 81 twins, 27 canaries), none in `error`, for 3.17 USD. The 358 unsolved episodes of `v10` were read one
+by one. The decisions below were taken by the maintainer on 9 November 2026.
+
+- **Five episodes of Gemini 2.5 Flash Lite in condition B are set aside**: the provider answered `UNAVAILABLE` (an
+  infrastructure failure, not an answer of the model). They are 3 `finite_burn_raise` and 2 `rendezvous_phasing` instances.
+  They are not rerun (rule: no retry) and are counted in no result: the cell has 74 episodes, not 79, and the files
+  `episodes.jsonl` still hold them, so a count from the files must remove them. The other 22 episodes of Gemini that ended with
+  `MALFORMED_FUNCTION_CALL` (13 in B, 9 in C) stay counted: the model produced the malformed call.
+- **The parser stays strict** (`<final_answer>` block, plain JSON). A lenient re-grading (code fence accepted, extra closing
+  brace accepted, unclosed or missing tag accepted) turns only about 10 of the 205 `invalid_format` episodes into `solved`
+  (about 50 plans could not be re-graded without GMAT), so the parser is not what drives the results. It is not a second
+  table of results.
+- **`tle_state` stays in condition A and is not removed**: removing it after the run would change the catalog the run was
+  declared on. It is reported as is, with the per-line table. In A it was solved 0 times in 15 (5 per model): gpt-oss-120b and
+  Qwen3.7 Flash mostly answer `ill_posed` ("SGP4 cannot be done by hand"), which the grader marks `wrong_status` because the
+  task is well posed. The A figures are also given without this line (29 instances per model) next to the full ones, as an
+  exploratory reading. This is a limit of A, not evidence on the models' knowledge.
+- **Failures that are not about orbital mechanics, to keep in mind when reading A against B and C**:
+  - gpt-oss-120b in A: 13 of 34 replies have an empty content after the reasoning (`stop`, no text). There is nothing to
+    grade. It lowers its A score and so the B−A and C−A gaps for this model.
+  - Gemini 2.5 Flash Lite: besides the 27 provider errors above, 12 replies in C end with an empty `STOP`, and 15 in A have
+    the JSON without the `<final_answer>` tags or inside a code fence.
+  - Qwen3.7 Flash: about 45 episodes in B and C reach the 60-message limit or the token guard without answering (up to 29
+    Python calls, 500 000 to 1 million tokens); in C it repeats `reset_session` and `create_spacecraft` without converging.
+    Twelve answers have one closing brace too many (`}}}`).
+  - gpt-oss-120b: a stray quote before `</final_answer>` in 4 episodes, and some blocks never closed.
+- **Failures on the content**: 63 of 81 trap episodes are `missed_trap` (the models answer `solved`; 4 episodes of Gemini on
+  `trap_isp` mention the assumed Isp in `claims` and still give a number). In `j2_drift` several models, in A, B and C, show
+  the same error of about 0.3 deg on the argument of periapsis: they use the secular formula, not a propagation. In `sun_synchronous`
+  the analytic inclination misses the drift tolerance (one sign error). Three gpt-oss episodes of `state_at_date` have exact
+  positions and wrong velocities (a wrong angle in the perifocal velocity, never checked).
+- **Claims**: one `claim_unconverged` episode in 684 (Qwen3.7 Flash, C, `circularize_plan`, graded `solved`, final eccentricity
+  about 4e-8). It does not validate the rule: it is one occurrence. `claim_unchecked` is nearly absent outside A.
+  `claim_contradicted` is highest for gpt-oss-120b in B and C (13 and 15 episodes, twins and canaries included).
+- **Twins** (9 per cell, solved): gpt-oss A 5, B 7, C 9; Gemini A 2, B 8, C 8; Qwen 9 in the three. C−B is not
+  distinguishable from zero for any model. **Canaries** (3 per cell, counted in no result): gpt-oss and Qwen 3/3 in B and C,
+  Gemini 2/3 everywhere; they flag no anomaly.
+- **Solved over `v10`** (before removing the 5 episodes above): gpt-oss A 4/34, B 42/79, C 51/79; Gemini A 0/34, B 17/79
+  (17/74 without the 5), C 17/79; Qwen A 11/34, B 47/79, C 29/79. H4 is not tested and DeepSeek V4 Flash stays set aside.
