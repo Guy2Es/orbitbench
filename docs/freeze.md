@@ -236,6 +236,12 @@ model. Its entry is removed from `scripts/run_lunar_test.py` so that a relaunch 
 `runs/lunar-test-dsflash-C/` and the cost-sample runs `runs/cost-v10-dsflash-*` stay for audit only and are counted in no
 result. The earlier entries are not edited: they record what was decided at the time.
 
+## Lunar test seeds published (10 November 2026)
+
+The article is finished, so the 30 lunar test seeds are published in `docs/test_seeds.md` and the range is **spent**: it
+must not be reused to evaluate a model, to train one or to tune anything. Nothing frozen changes. The earlier entries that
+say the range is private record what was true at the time.
+
 ## Reward not reported (10 November 2026)
 
 The reward frozen above (`reward = met_fraction / (1 + max(0, gap_m_s) / 10)`) is still computed by the grader and written in

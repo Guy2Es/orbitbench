@@ -11,7 +11,8 @@ of v1.1: v1.0 is unchanged and its numbers (`docs/results_v10.md`) do not includ
   neither recall nor fetch offline. On the development seeds the Python baseline (point mass, J2, C22, approximate
   ephemerides) found no impact where GMAT did, and agreed with GMAT truncated to degree 2 to 0.1 km: the gap comes from the
   harmonics above degree 2, not from a bug (`docs/lunar_baseline_rule.md`).
-- 30 test seeds, screened (the date moves by less than 0.3 day under a change of the Moon orientation), still private.
+- 30 test seeds, screened (the date moves by less than 0.3 day under a change of the Moon orientation), published in
+  `docs/test_seeds.md` (the range is spent).
 - Conditions B and C (A is not run: the task cannot be answered from memory). k = 3 attempts per instance, so 90 episodes
   per cell, message limit 60, token guard 1 000 000 per episode.
 - Models: gpt-oss-120b (Crusoe), Gemini 2.5 Flash Lite, Qwen3.7 Flash, through OpenRouter.
@@ -119,7 +120,7 @@ announced only by a trailing warning, and a timeout that comes back as an error.
 ## Limits
 
 One line, 30 instances with 3 attempts each (the 90 episodes of a cell are not independent). The line was designed so that B
-fails. The failures were read one by one (above); the reference number used to tell a right answer in a wrong format is the answer of the solved episodes, not the grader's stored value, . The test seeds of this line are private until it is published.
+fails. The failures were read one by one (above); the reference number used to tell a right answer in a wrong format is the answer of the solved episodes, not the grader's stored value, . The test seeds of this line are published and spent (`docs/test_seeds.md`).
 
 ## Reproduce
 
