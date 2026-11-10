@@ -1,0 +1,331 @@
+# Built by scripts/build_lunar_table.py (GMAT, GRGM900C degree 50). Do not edit by hand.
+636226485:
+  impact_days: 9.4335
+  params:
+    aop_deg: 93.1
+    ecc: 0.0056
+    epoch: 08 Jun 2026 15:16:00.000
+    inc_deg: 80.0
+    raan_deg: 331.2
+    sma_km: 1768.57
+    ta_deg: 300.1
+  rejected: 0
+636226486:
+  impact_days: 9.3314
+  params:
+    aop_deg: 94.7
+    ecc: 0.0039
+    epoch: 16 Nov 2026 09:50:00.000
+    inc_deg: 79.0
+    raan_deg: 142.6
+    sma_km: 1775.13
+    ta_deg: 7.7
+  rejected: 2
+636226487:
+  impact_days: 9.5266
+  params:
+    aop_deg: 279.1
+    ecc: 0.0071
+    epoch: 05 Dec 2026 13:23:00.000
+    inc_deg: 45.8
+    raan_deg: 191.8
+    sma_km: 1780.86
+    ta_deg: 160.5
+  rejected: 0
+636226488:
+  impact_days: 7.4772
+  params:
+    aop_deg: 304.0
+    ecc: 0.005
+    epoch: 27 Mar 2026 08:53:00.000
+    inc_deg: 53.2
+    raan_deg: 314.6
+    sma_km: 1770.14
+    ta_deg: 294.7
+  rejected: 1
+636226489:
+  impact_days: 43.0829
+  params:
+    aop_deg: 291.2
+    ecc: 0.007
+    epoch: 17 Feb 2026 18:11:00.000
+    inc_deg: 52.7
+    raan_deg: 358.9
+    sma_km: 1783.06
+    ta_deg: 257.6
+  rejected: 0
+636226490:
+  impact_days: 58.6804
+  params:
+    aop_deg: 235.2
+    ecc: 0.0074
+    epoch: 22 Aug 2026 21:49:00.000
+    inc_deg: 59.5
+    raan_deg: 300.2
+    sma_km: 1789.3
+    ta_deg: 251.7
+  rejected: 0
+636226491:
+  impact_days: 10.4787
+  params:
+    aop_deg: 200.8
+    ecc: 0.0055
+    epoch: 17 Sep 2026 18:19:00.000
+    inc_deg: 51.5
+    raan_deg: 73.5
+    sma_km: 1785.47
+    ta_deg: 178.4
+  rejected: 0
+636226492:
+  impact_days: 13.5012
+  params:
+    aop_deg: 241.1
+    ecc: 0.0045
+    epoch: 24 Oct 2026 06:58:00.000
+    inc_deg: 81.1
+    raan_deg: 216.6
+    sma_km: 1779.73
+    ta_deg: 312.0
+  rejected: 1
+636226493:
+  impact_days: 38.9786
+  params:
+    aop_deg: 289.8
+    ecc: 0.0038
+    epoch: 19 Dec 2026 19:36:00.000
+    inc_deg: 61.6
+    raan_deg: 320.9
+    sma_km: 1781.8
+    ta_deg: 307.6
+  rejected: 0
+636226494:
+  impact_days: 22.2387
+  params:
+    aop_deg: 53.5
+    ecc: 0.004
+    epoch: 12 Feb 2026 17:18:00.000
+    inc_deg: 59.7
+    raan_deg: 335.2
+    sma_km: 1786.49
+    ta_deg: 327.5
+  rejected: 0
+636226495:
+  impact_days: 19.8669
+  params:
+    aop_deg: 262.5
+    ecc: 0.0053
+    epoch: 19 Mar 2026 09:01:00.000
+    inc_deg: 71.7
+    raan_deg: 155.3
+    sma_km: 1773.33
+    ta_deg: 154.1
+  rejected: 0
+636226496:
+  impact_days: 6.2234
+  params:
+    aop_deg: 316.5
+    ecc: 0.0054
+    epoch: 31 Jan 2026 00:39:00.000
+    inc_deg: 61.8
+    raan_deg: 156.2
+    sma_km: 1775.32
+    ta_deg: 92.1
+  rejected: 0
+636226497:
+  impact_days: 17.2824
+  params:
+    aop_deg: 307.1
+    ecc: 0.0045
+    epoch: 25 Sep 2026 09:31:00.000
+    inc_deg: 60.1
+    raan_deg: 77.6
+    sma_km: 1768.28
+    ta_deg: 219.8
+  rejected: 0
+636226498:
+  impact_days: 7.6942
+  params:
+    aop_deg: 236.2
+    ecc: 0.0044
+    epoch: 07 May 2026 07:12:00.000
+    inc_deg: 78.7
+    raan_deg: 78.8
+    sma_km: 1777.25
+    ta_deg: 117.5
+  rejected: 0
+636226499:
+  impact_days: 12.1737
+  params:
+    aop_deg: 69.0
+    ecc: 0.0048
+    epoch: 07 Feb 2026 10:37:00.000
+    inc_deg: 46.7
+    raan_deg: 295.0
+    sma_km: 1767.4
+    ta_deg: 170.8
+  rejected: 0
+636226500:
+  impact_days: 29.4703
+  params:
+    aop_deg: 126.5
+    ecc: 0.0038
+    epoch: 12 Aug 2026 03:14:00.000
+    inc_deg: 57.7
+    raan_deg: 184.7
+    sma_km: 1781.8
+    ta_deg: 99.3
+  rejected: 0
+636226501:
+  impact_days: 12.8862
+  params:
+    aop_deg: 260.3
+    ecc: 0.0071
+    epoch: 31 Jul 2026 21:29:00.000
+    inc_deg: 60.3
+    raan_deg: 188.7
+    sma_km: 1790.49
+    ta_deg: 104.3
+  rejected: 0
+636226502:
+  impact_days: 36.7485
+  params:
+    aop_deg: 189.6
+    ecc: 0.0076
+    epoch: 10 Jul 2026 11:11:00.000
+    inc_deg: 53.8
+    raan_deg: 111.8
+    sma_km: 1784.98
+    ta_deg: 271.4
+  rejected: 0
+636226503:
+  impact_days: 11.7311
+  params:
+    aop_deg: 276.2
+    ecc: 0.0056
+    epoch: 10 Nov 2026 10:57:00.000
+    inc_deg: 70.1
+    raan_deg: 300.6
+    sma_km: 1773.49
+    ta_deg: 68.3
+  rejected: 0
+636226504:
+  impact_days: 5.0042
+  params:
+    aop_deg: 279.3
+    ecc: 0.0042
+    epoch: 17 Jun 2026 11:17:00.000
+    inc_deg: 76.5
+    raan_deg: 156.0
+    sma_km: 1770.59
+    ta_deg: 150.8
+  rejected: 0
+636226505:
+  impact_days: 37.1328
+  params:
+    aop_deg: 350.6
+    ecc: 0.0064
+    epoch: 18 Sep 2026 10:04:00.000
+    inc_deg: 72.3
+    raan_deg: 352.5
+    sma_km: 1790.21
+    ta_deg: 89.4
+  rejected: 0
+636226506:
+  impact_days: 39.0023
+  params:
+    aop_deg: 272.1
+    ecc: 0.0073
+    epoch: 12 Jul 2026 14:35:00.000
+    inc_deg: 69.7
+    raan_deg: 154.0
+    sma_km: 1777.4
+    ta_deg: 81.0
+  rejected: 0
+636226507:
+  impact_days: 44.1876
+  params:
+    aop_deg: 182.5
+    ecc: 0.0069
+    epoch: 21 May 2026 05:54:00.000
+    inc_deg: 59.8
+    raan_deg: 266.2
+    sma_km: 1782.49
+    ta_deg: 253.8
+  rejected: 0
+636226508:
+  impact_days: 54.027
+  params:
+    aop_deg: 138.7
+    ecc: 0.0066
+    epoch: 24 Oct 2026 06:24:00.000
+    inc_deg: 47.6
+    raan_deg: 246.1
+    sma_km: 1791.23
+    ta_deg: 199.9
+  rejected: 1
+636226509:
+  impact_days: 3.1517
+  params:
+    aop_deg: 192.7
+    ecc: 0.0074
+    epoch: 13 Nov 2026 02:34:00.000
+    inc_deg: 77.3
+    raan_deg: 159.3
+    sma_km: 1773.07
+    ta_deg: 209.8
+  rejected: 0
+636226510:
+  impact_days: 13.0317
+  params:
+    aop_deg: 174.6
+    ecc: 0.0067
+    epoch: 01 Jun 2026 04:45:00.000
+    inc_deg: 68.5
+    raan_deg: 290.7
+    sma_km: 1770.03
+    ta_deg: 88.8
+  rejected: 1
+636226511:
+  impact_days: 12.4699
+  params:
+    aop_deg: 277.7
+    ecc: 0.0078
+    epoch: 13 Aug 2026 07:43:00.000
+    inc_deg: 52.7
+    raan_deg: 109.2
+    sma_km: 1781.22
+    ta_deg: 271.8
+  rejected: 0
+636226512:
+  impact_days: 18.1304
+  params:
+    aop_deg: 182.2
+    ecc: 0.0049
+    epoch: 29 May 2026 17:31:00.000
+    inc_deg: 63.4
+    raan_deg: 142.9
+    sma_km: 1771.3
+    ta_deg: 85.3
+  rejected: 0
+636226513:
+  impact_days: 12.9077
+  params:
+    aop_deg: 143.8
+    ecc: 0.0032
+    epoch: 07 Dec 2026 11:44:00.000
+    inc_deg: 82.6
+    raan_deg: 220.8
+    sma_km: 1786.38
+    ta_deg: 285.6
+  rejected: 0
+636226514:
+  impact_days: 31.0832
+  params:
+    aop_deg: 21.3
+    ecc: 0.0042
+    epoch: 06 Mar 2026 18:11:00.000
+    inc_deg: 47.6
+    raan_deg: 104.2
+    sma_km: 1780.18
+    ta_deg: 279.4
+  rejected: 0

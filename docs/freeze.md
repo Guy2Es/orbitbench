@@ -240,7 +240,8 @@ result. The earlier entries are not edited: they record what was decided at the 
 
 The article is finished, so the 30 lunar test seeds are published in `docs/test_seeds.md` and the range is **spent**: it
 must not be reused to evaluate a model, to train one or to tune anything. Nothing frozen changes. The earlier entries that
-say the range is private record what was true at the time.
+say the range is private record what was true at the time. The table of the 30 seeds (instance parameters and GMAT reference
+dates, `docs/lunar_test_table.yaml`) is published too, so the instances can be regenerated; it holds the answers.
 
 ## Reward not reported (10 November 2026)
 

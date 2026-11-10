@@ -24,5 +24,6 @@ python -m orbitbench.harness run --condition B --suite v10 --first-seed 893483 -
 These ranges are **spent**: they served once, each for the report that quotes them, and must not be reused to evaluate a
 model, to train one, or to tune anything. Any later evaluation (new lines, the lunar line, a training study) draws a new
 range kept private until its own results are published. The lunar range (636226485 to 636226514) is spent as well, since the lunar results are published (`docs/results_lunar.md`).
-The instance parameters and the GMAT reference dates of these 30 seeds are in `private/lunar_impact_table.yaml`, which git
-ignores and which is not published here.
+The instance parameters and the GMAT reference dates of these 30 seeds are published in `docs/lunar_test_table.yaml` (built by
+`scripts/build_lunar_table.py`): with it anyone can regenerate the instances, and it holds the answers, which is why the range is spent. To use it, set `ORBITBENCH_LUNAR_PRIVATE_TABLE=docs/lunar_test_table.yaml` and run with
+`--suite lunar_test --first-seed <first seed above>`.
