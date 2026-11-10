@@ -3,7 +3,6 @@
 
 Three models (gpt-oss-120b, Gemini 2.5 Flash Lite, Qwen3.7 Flash), conditions A, B and C, 5 seeds per line, one attempt.
 Suites of each step: `v10` (79 instances, A plays the 34 of levels 1 and 2), `twins` (9) and `canary` (3).
-DeepSeek V4 Flash is not part of this run (docs/freeze.md, 9 November 2026).
 
 Before each step the OpenRouter account's total usage is read; a step starts only if the spend since the run began plus
 the upper bound of that step stays under the ceiling. Interrupted runs resume: relaunch the same command.

@@ -56,7 +56,7 @@ Inspect version. Two runs are comparable only if these columns match.
 ## Results of v1.0 (9 November 2026)
 
 gpt-oss-120b, Gemini 2.5 Flash Lite and Qwen3.7 Flash through OpenRouter, one attempt per instance, 79 instances (A: 34).
-DeepSeek V4 Flash was set aside, then dropped (see [docs/freeze.md](docs/freeze.md)). Five Gemini episodes that ended on a
+Five Gemini episodes that ended on a
 provider failure are counted in no result.
 
 | Model | A | B | C | C minus B (95 % interval) |

@@ -235,3 +235,10 @@ image a gmat-mcp plotting tool may return, so its condition C episodes end in an
 model. Its entry is removed from `scripts/run_lunar_test.py` so that a relaunch cannot replay it; the 13 partial episodes in
 `runs/lunar-test-dsflash-C/` and the cost-sample runs `runs/cost-v10-dsflash-*` stay for audit only and are counted in no
 result. The earlier entries are not edited: they record what was decided at the time.
+
+## Reward not reported (10 November 2026)
+
+The reward frozen above (`reward = met_fraction / (1 + max(0, gap_m_s) / 10)`) is still computed by the grader and written in
+the exports, and the code is unchanged, but no result of the report uses it: the only success measure reported is the binary
+`solved`, which never depended on it. The tables of the report have no reward column. This is a deviation from what was
+declared at the freeze, dated here; the earlier entries are not edited.
