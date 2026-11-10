@@ -9,11 +9,11 @@ description = "A benchmark and RL environment for mission analysis, graded by re
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
-dependencies = ["numpy", "pydantic>=2.7", "pyyaml", "sgp4"]
+dependencies = ["numpy", "scipy", "pydantic>=2.7", "pyyaml", "sgp4"]
 
 [project.optional-dependencies]
 dev = ["pytest"]
-harness = ["inspect-ai==0.3.287", "mcp==2.3.0", "anthropic==2.3.0"]
+harness = ["inspect-ai==0.3.287", "agent-client-protocol<1", "mcp==2.3.0", "anthropic==2.3.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

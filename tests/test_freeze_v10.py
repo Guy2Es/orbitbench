@@ -28,6 +28,18 @@ def load(path: Path) -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
+def rounded(x):
+    """Floats to 12 significant digits: the last digits of a reference computed with scipy or SGP4 differ between platforms
+    (about 1e-15 relative), and the hash must not."""
+    if isinstance(x, float):
+        return float(f"{x:.11e}")
+    if isinstance(x, dict):
+        return {k: rounded(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)):
+        return [rounded(v) for v in x]
+    return x
+
+
 def live() -> dict:
     default = instances(V10_LINES) + instances(TWIN_LINES) + instances(CANARY_LINES)
     dev = [generate(family, seed, mode) for family, mode, _ in V10_LINES for seed in range(10)]
@@ -42,7 +54,7 @@ def live() -> dict:
         "prompts": {c: digest(system_prompt(c)) for c in ("A", "B", "C")},
         "counts": {"v10": len(instances(V10_LINES)), "twins": len(instances(TWIN_LINES)),
                    "canaries": len(instances(CANARY_LINES))},
-        "dataset": digest(json.dumps([i.to_dict() for i in default], sort_keys=True)),
+        "dataset": digest(json.dumps([rounded(i.to_dict()) for i in default], sort_keys=True)),
         "dev_statements": digest(chr(10).join(i.statement for i in dev)),
     }
 
@@ -53,7 +65,7 @@ FROZEN = json.loads(r"""{
   "twins": 9,
   "v10": 85
  },
- "dataset": "4ecbff96fcd3a65f",
+ "dataset": "e2696cf9cba0485f",
  "dev_statements": "a4504016515b7092",
  "epochs": {
   "j2_drift": "01 Jan 2000 12:00:00.000",

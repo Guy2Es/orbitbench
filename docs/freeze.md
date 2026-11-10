@@ -257,3 +257,11 @@ to the commit `d161333` of `https://github.com/Guy2Es/GMAT-MCP` (2 November 2026
 (commit `63d93eb`) changes the defaults that the lunar failures exposed (60-day bound, explicit lunar gravity field, a long
 call returned as a normal `running` answer). The published runs were not replayed with it, so their numbers belong to
 `d161333`.
+
+## Dataset hash made platform-independent (10 November 2026)
+
+The continuous integration on Linux found that the dataset hash of v1.0 (`4ecbff96fcd3a65f`) depended on the platform: 9 numbers
+of 2 instances, references computed with scipy and SGP4, differ at the 15th digit between Windows and Linux. The hash now
+rounds every float to 12 significant digits before hashing (`rounded` in `tests/test_freeze_v10.py`); its value is
+`e2696cf9cba0485f`, identical on both platforms. No instance, tolerance, prompt or limit changes, and the published runs are
+unaffected: only the way the same dataset is fingerprinted changes. The earlier entries are not edited.
