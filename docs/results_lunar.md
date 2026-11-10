@@ -32,7 +32,7 @@ Solved (every constraint met), 95 % Wilson interval. Reward equals the solved sh
 Instances solved in all 3 attempts (H4 on this line): B 0 for all three; C gpt-oss-120b 0.233 (0.100 to 0.400), Gemini 0.033
 (0.000 to 0.100), Qwen 0.233 (0.100 to 0.400).
 
-Outcome of the 90 episodes of each cell (labels of the grader; the failures were not read one by one):
+Outcome of the 90 episodes of each cell (labels of the grader; the failures are read one by one in the section below):
 
 | Model, condition | solved | refused (`ill_posed`) | wrong answer | no usable answer |
 |---|---|---|---|---|
@@ -61,10 +61,62 @@ claimed verification and was contradicted. No `claim_unchecked` and no `claim_un
    3 attempts (H4 supported on this line), and 31 to 46 of 90 episodes end without a usable answer (limits, loops, empty
    replies), as in v1.0.
 
+## The failures, read one by one
+
+Read on 10 November 2026: the 126 episodes of condition C that are not solved, and the 270 of condition B. The transcripts
+(tool calls, tool results, last message) were read, not only the labels. "Right number" below means within 1 day of a
+reference that the grader does not store: the 30 instances all have solved episodes, those agree to 0.46 day at most, and
+their answer serves as the reference. The elements of the orbit were copied correctly in every episode that created a
+spacecraft, except one (Qwen), and the force model passed to `create_propagator` is the same in failures and in successes.
+
+| Why the 126 episodes of C are not solved | gpt-oss-120b | Gemini 2.5 Flash Lite | Qwen3.7 Flash | Total |
+|---|---|---|---|---|
+| Right number, rejected by the strict format | 16 | 11 | 2 | 29 |
+| Wrong number and wrong format | 1 | 4 | 0 | 5 |
+| No answer: message limit (60) reached while stepping by hand | 14 | 0 | 33 | 47 |
+| No answer: the turn ends early (empty reply, plan or invented tool output, stop after a tool error) | 0 | 31 | 0 | 31 |
+| Wrong value after a complete run | 7 | 3 | 2 | 12 |
+| Gave up with `ill_posed` | 0 | 2 | 0 | 2 |
+| **Not solved** | **38** | **51** | **37** | **126** |
+
+1. **29 of the 126 failures hold the right number.** The reply is not accepted: bare JSON without the `<final_answer>` tags,
+   harmony tokens in the reply, the tag not closed, text after the block (gpt-oss, 16), JSON in a markdown fence inside the
+   block (Gemini, 13 of its 15 format failures). The strict parser was declared in advance and the result above keeps it. If
+   the format were forgiven, C would be 68, 50 and 55 of 90 instead of 52, 39 and 53. This is a sensitivity reading made after
+   the fact, not a result.
+2. **78 episodes give no answer, in two different ways.** gpt-oss (14) and Qwen (33) do not use the stop condition of the
+   tool for the whole run: they step by hand ("propagate one day, read the periapsis, again"), recreate the spacecraft and the
+   propagator, reset the session, and hit the 60 messages. Among the solved episodes 98 % to 100 % use `stop_quantity` at
+   once; among the failures 55 % (Gemini), 82 % (gpt-oss) and 86 % (Qwen) do, with 2 to 4 times more `propagate` calls. Qwen
+   recreates the spacecraft twice or more in 92 % of its failures (45 % of its successes). Gemini (31) never gets that far: its
+   reply is empty after `set_mission` or `create_spacecraft` (10) and the loop ends, it describes a call or writes the output
+   it expects instead of calling the tool (6), it calls `propagate` with a propagator name that does not exist and stops on the
+   error (8), or it stops after the result with a sentence "let me convert" (7).
+3. **12 wrong values, of which 3 come from the tool.** `propagate` returned after 30 days when 60 were asked (a default
+   `max_days` of 30, with a result that looks normal). Two gpt-oss episodes and one Qwen episode then added only the last
+   segments and lost the first 30 days (errors of -29.9, -30.0 and -30.0 days). A fourth, gpt-oss, lost its first day-long
+   steps the same way (-1.0). Qwen's other error (+12.7) is a step by hand that passed the crossing, so that the stop
+   condition fired on a later one. Gemini: one value invented after a `propagate` that returned 0 s ("inferred from partial
+   results"), two estimates from a backward propagation. Not explained: two gpt-oss episodes where a single `propagate`
+   stopped 9 and 19 days before the reference; the model never read the periapsis at the stop, and I did not rerun them.
+4. **2 episodes give up.** Gemini called a `propagate` that exceeded the 60 s of a call (the job goes on in the background,
+   `get_job_status` gives the result) and answered `ill_posed` instead of waiting.
+
+Condition B. gpt-oss and Gemini call no tool in any of their 180 episodes: they answer at once. Of their 135 refusals, every
+one says that the GRGM900C coefficients are not available in the environment, and most add the ephemerides or the libration
+kernel. The reply is honest, and the grader counts it as a failure (status `ill_posed` for a task that has an answer), so a B
+of 0 on this line measures the missing data as much as the reasoning. Qwen is the only one to try: 81 of its 90 episodes use
+Python, 69 end on the 60 messages, 5 give a wrong value and 4 refuse.
+
+What this changes in the reading above. It strengthens point 1 (B has no access to the data, and says so). It qualifies
+point 4: of the 126 failures, 29 are a format problem, and most of the others come from how the model drives the tool (hand
+stepping, bookkeeping across calls, giving up on a timeout), not from the orbital mechanics. The tool itself has two weak
+points that the failures expose: the silent 30-day cap, and a timeout that looks like an error.
+
 ## Limits
 
 One line, 30 instances with 3 attempts each (the 90 episodes of a cell are not independent). The line was designed so that B
-fails. The failures were declared to be read one by one and have not been: the table uses the grader's labels. DeepSeek V4 Flash
+fails. The failures were read one by one (above); the reference number used to tell a right answer in a wrong format is the answer of the solved episodes, not the grader's stored value, and two wrong values remain unexplained. DeepSeek V4 Flash
 has no score. The test seeds of this line are private until it is published.
 
 ## Reproduce
