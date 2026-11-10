@@ -248,3 +248,11 @@ The reward frozen above (`reward = met_fraction / (1 + max(0, gap_m_s) / 10)`) i
 the exports, and the code is unchanged, but no result of the report uses it: the only success measure reported is the binary
 `solved`, which never depended on it. The tables of the report have no reward column. This is a deviation from what was
 declared at the freeze, dated here; the earlier entries are not edited.
+
+## Server version of the published runs (10 November 2026)
+
+Every published episode (v0.1, v1.0, lunar) ran with the gmat-mcp server of `docker/app/`, which is identical, file by file,
+to the commit `d161333` of `https://github.com/Guy2Es/GMAT-MCP` (2 November 2026), before version 0.2.0. Version 0.2.0
+(commit `63d93eb`) changes the defaults that the lunar failures exposed (60-day bound, explicit lunar gravity field, a long
+call returned as a normal `running` answer). The published runs were not replayed with it, so their numbers belong to
+`d161333`.
