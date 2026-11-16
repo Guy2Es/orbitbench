@@ -244,7 +244,7 @@ the code, before the first Colab session. Where it differs from them, it applies
    `scripts/rl_round.py bakeoff --parallel 8 --units-per-hour <rate>` prints the estimate.
 3. **Second round-0 block.** "At most twice" (12 November) reads: round 0 is played at most twice in all, the first block
    and one more (`--redraw 1`), pooled. If the two blocks together keep fewer than 48 rewarded replies, the fine-tune runs
-   on what there is and the count is reported.
+   on what there is and the count is reported. (Superseded the same day by the second addendum below: up to 8 blocks.)
 4. **Long transcripts.** A reply whose whole transcript exceeds 8,192 tokens (the input and the output of the last model
    call, as the server counted them) is in neither arm's set: the fine-tune cannot hold it in memory. Such replies are
    removed before the "at most 2 per instance" rule and before the sizes are matched, so the two arms keep the same number
@@ -286,3 +286,26 @@ check of `rl_finetune.py` enforces before any fine-tune. (b) Unsloth packs sever
 number of optimizer steps would follow the total length of the examples, and the reward arm (shortest replies) would get fewer
 steps than the format arm. Packing is switched off: the steps follow the number of examples, as the protocol says. Nothing else
 in the fine-tune changes. The fine-tune fits on the T4 in 16 bits (point 8 above: the L4 and 4-bit fallbacks are not used).
+
+**Second addendum of 16 November 2026 (phase 0 on Colab, before any training run).**
+
+*Measured.* Phase 0 on Colab (Qwen3-4B-Instruct-2507, vLLM fp16 on a T4, condition B, 36 instances x 2 epochs = 72 episodes from
+seed 1,900,000, 8 in parallel, local sandbox): 13 min 35 s; **1 episode solved of 72 (1.4 %)**: escape_velocity 0/12, hohmann 0/12,
+plane_change_dv 1/12, tsiolkovsky 0/12, the six trap and twin lines 0/24; mean 2.0 turns and 999 output tokens per episode.
+Estimate by the rule of point 2: about 1.6 h for a block of 144 x 4 episodes and about 23 Colab units for 9 blocks (rate
+1.57 units/h), well under 150: **blocks of 144 instances**.
+
+*Cause.* Three transcripts read (hohmann, escape_velocity, tsiolkovsky): the model writes a correct Python computation whose last
+line is a bare expression, with no `print`. The Python tool then returns an empty output, and the model states a number it did
+not compute (1000.0 m/s; 342.1 kg where the exact value is about 452 kg). The statements and the grader are sound. This is the
+behaviour the fine-tuning is meant to change, so the study stands; the tool and the prompts are not changed (frozen benchmark,
+arm 0 stays comparable).
+
+*Consequence for the minimum of 48.* At about 1.4 %, a block of 576 episodes keeps about 8 rewarded replies, and one extra block
+(point 3 above) would give about 16. **Round-0 rule, replacing point 3 above:** the base model plays round-0 blocks, one after
+the other (`--redraw 0, 1, ...`), until the pooled blocks keep 48 rewarded replies (reward 1.0, at most 2 per instance, the
+shortest first), **8 blocks at most** per training seed. The format arm is matched in size to the reward arm as before. If 48 is
+not reached after 8 blocks, the fine-tune runs on what there is and the count is reported; **under 24 rewarded replies, the study
+stops there and reports it as a negative result**. Round 1 is unchanged: one block per arm. Cost: at most 3 x (8 + 2) = 30 blocks of
+about 2.5 units, 75 units, plus about 10 for the 12 fine-tunes, against the ceiling of 150. The rewarded replies may come from few
+families; that is how the filter works, and the held-out families of the evaluation show what carries over. Nothing else changes.

@@ -82,14 +82,16 @@ def test_chat_of_equals_the_system_message_of_a_real_mockllm_run():
 
 
 def test_the_blocks_of_the_loop_never_overlap_and_stay_below_phase_zero():
-    from orbitbench.rl.data import PHASE0_FIRST_SEED, block_first_seed
+    from orbitbench.rl.data import MAX_BLOCKS_R0, PHASE0_FIRST_SEED, block_first_seed
     seen = set()
     for t in range(3):
         for r in (0, 1):
-            for d in (0, 1):
+            for d in range(MAX_BLOCKS_R0):
                 block = {(i.family, i.seed) for i in train_instances(144, block_first_seed(t, r, d))}
                 assert len(block) == 144 and not block & seen
                 seen |= block
     assert max(s for _, s in seen) < PHASE0_FIRST_SEED
     with pytest.raises(ValueError):
         block_first_seed(3, 0)
+    with pytest.raises(ValueError):
+        block_first_seed(0, 0, MAX_BLOCKS_R0)

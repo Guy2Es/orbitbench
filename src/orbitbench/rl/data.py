@@ -49,14 +49,16 @@ def chat_of(instance: Instance, condition: str = "A") -> list[dict]:
 
 
 # Blocks of 144 distinct instances (8 cycles of 18, 24 seeds each) never overlap: each (training seed, round, redraw) owns a
-# range of BLOCK_STRIDE seeds. 3 training seeds x 2 rounds x 2 redraws use seeds below 1,012,000; phase 0 starts at 1,900,000.
+# range of BLOCK_STRIDE seeds. 3 training seeds x 2 rounds x 8 redraws use seeds below 1,048,000; phase 0 starts at 1,900,000.
 BLOCK_STRIDE = 1000
 PHASE0_FIRST_SEED = 1_900_000
+MAX_BLOCKS_R0 = 8       # blocks a training seed may play in round 0 to reach 48 rewarded replies (amendment of 16 Nov 2026, point 11)
 
 
 def block_first_seed(train_seed: int, round_: int, redraw: int = 0) -> int:
-    """First seed of the block that training seed `train_seed` plays in round `round_` (0 or 1); `redraw` is 1 for the
-    second block of round 0, played only if the first kept fewer than 48 rewarded replies (docs/rl_plan.md)."""
-    if not (0 <= train_seed < 3 and round_ in (0, 1) and redraw in (0, 1)):
-        raise ValueError("train_seed in 0..2, round in 0..1, redraw in 0..1")
-    return TRAIN_FIRST_SEED + BLOCK_STRIDE * (4 * train_seed + 2 * round_ + redraw)
+    """First seed of the block that training seed `train_seed` plays in round `round_` (0 or 1); `redraw` numbers the
+    extra blocks of round 0 (0 is the first block, 1..7 are played only while fewer than 48 rewarded replies are kept,
+    docs/rl_plan.md). Round 1 plays only redraw 0."""
+    if not (0 <= train_seed < 3 and round_ in (0, 1) and 0 <= redraw < MAX_BLOCKS_R0):
+        raise ValueError(f"train_seed in 0..2, round in 0..1, redraw in 0..{MAX_BLOCKS_R0 - 1}")
+    return TRAIN_FIRST_SEED + BLOCK_STRIDE * (2 * MAX_BLOCKS_R0 * train_seed + MAX_BLOCKS_R0 * round_ + redraw)

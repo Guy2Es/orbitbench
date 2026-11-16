@@ -164,3 +164,8 @@ and written before any training run, change the following.
 - **Rules made exact:** the size of the blocks on Colab, the second round-0 block, the transcripts too long for the
   fine-tune (in neither arm), the base of the fine-tunes (the files of arm 0).
 - **Test seeds:** the private range is drawn; its commitment is in `docs/rl_plan.md`.
+
+## 16 Nov 2026 (second entry): phase 0 on Colab and round-0 blocks
+Phase 0 of the RL study gave 1 solved episode of 72 for the untrained model (it computes in Python but does not print the result,
+then invents it). H6 and its comparison are unchanged; only the number of round-0 blocks changes, up to 8 until 48 rewarded replies
+(docs/rl_plan.md, second addendum of 16 November). Written before any training run.

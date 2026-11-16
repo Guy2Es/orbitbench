@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from orbitbench.rl.data import PHASE0_FIRST_SEED, block_first_seed  # noqa: E402
+from orbitbench.rl.data import MAX_BLOCKS_R0, PHASE0_FIRST_SEED, block_first_seed  # noqa: E402
 from orbitbench.rl.rollouts import episodes_from_dir, read_sft, select, too_long, write_sft  # noqa: E402
 
 # Root of the run folders and training files: runs/rl at home; on Colab, set RL_DIR to the Drive folder (see rl_colab.py).
@@ -32,7 +32,7 @@ RL = Path(os.environ.get("RL_DIR", ROOT / "runs" / "rl"))
 TOKEN_GUARD = 60_000          # tokens of one episode (input, cache-read and output), as written in docs/rl_plan.md
 BLOCK_N = 144                 # distinct instances of a block; 96 if the chosen model needs more than 90 s per episode
 ATTEMPTS = 4                  # per instance in a rollout block
-MIN_REWARDED = 48             # fewer rewarded replies in round 0: play another round-0 block (at most one more)
+MIN_REWARDED = 48             # fewer rewarded replies in round 0: play another round-0 block (MAX_BLOCKS_R0 blocks at most)
 MAX_EXAMPLE_TOKENS = 8192     # longer transcripts are in neither arm's set: MAX_SEQ of rl_finetune.py (GPU memory)
 BLOCKS = 9                    # 3 training seeds x (round 0 once, round 1 once per arm)
 UNITS_CEILING = 150           # Colab compute units a month for the 9 blocks (rl_plan.md, amendment of 16 November 2026)
@@ -158,11 +158,12 @@ def cmd_select(a) -> int:
     reward` first, then `--base-arm format --only format --count <examples of the reward file>` so that both arms keep the
     same number of examples."""
     t, r = a.train_seed, a.round
-    episodes = []
-    for d in (0, 1):
+    episodes, played = [], []
+    for d in range(MAX_BLOCKS_R0):
         folder = block_dir(a.base_arm, t, r, d)
         if folder.exists():
             episodes += episodes_from_dir(folder, "B")
+            played.append(d)
     if not episodes:
         raise SystemExit(f"no episodes under {block_dir(a.base_arm, t, r, 0)}")
     chosen = select(episodes, seed=t, count=a.count, max_tokens=MAX_EXAMPLE_TOKENS)
@@ -179,9 +180,13 @@ def cmd_select(a) -> int:
     if a.only == "format" and a.count is not None and len(chosen["format"]) < a.count:
         print(f"warning: only {len(chosen['format'])} parsing replies for a target of {a.count}: the arms will not match in size")
     if r == 0 and a.only != "format" and len(chosen["reward"]) < MIN_REWARDED:
-        print(f"only {len(chosen['reward'])} rewarded replies (< {MIN_REWARDED}): play another round-0 block with --redraw 1, "
-              "then select again (both blocks are pooled)")
-        return 3
+        nxt = max(played) + 1
+        if nxt < MAX_BLOCKS_R0:
+            print(f"only {len(chosen['reward'])} rewarded replies (< {MIN_REWARDED}) after {len(played)} block(s): play another "
+                  f"round-0 block with --redraw {nxt}, then select again (the blocks are pooled)")
+            return 3
+        print(f"only {len(chosen['reward'])} rewarded replies (< {MIN_REWARDED}) after the {MAX_BLOCKS_R0} blocks allowed: the "
+              "fine-tune goes on with them; write the number in docs/rl_plan.md (under 24, stop and report it)")
     return 0
 
 
@@ -236,7 +241,8 @@ def main(argv=None) -> int:
     p.add_argument("--tag", required=True)
     p.add_argument("--train-seed", type=int, required=True)
     p.add_argument("--round", type=int, choices=[0, 1], required=True)
-    p.add_argument("--redraw", type=int, choices=[0, 1], default=0)
+    p.add_argument("--redraw", type=int, choices=range(MAX_BLOCKS_R0), default=0,
+                   help="round 0 only: number of the extra block (0 is the first)")
     p.add_argument("--block-n", type=int, default=BLOCK_N)
     p.add_argument("--first-seed", type=int, help="smoke runs only: play from this training seed, not the block's own range")
     common(p)

@@ -67,3 +67,30 @@ def test_a_real_arm_cannot_be_played_from_another_seed():
     import pytest
     with pytest.raises(SystemExit):
         rr.cmd_play(NS(first_seed=1_950_000, arm="base", train_seed=0, round=0, redraw=0, block_n=2))
+
+
+def _round0(monkeypatch, tmp_path, blocks, rewarded_per_block):
+    """A round 0 whose blocks `blocks` exist, each holding `rewarded_per_block` rewarded replies of distinct instances."""
+    from types import SimpleNamespace as NS
+    monkeypatch.setattr(rr, "RL", tmp_path)
+    for d in blocks:
+        rr.block_dir("base", 0, 0, d).mkdir(parents=True)
+
+    def episodes(folder, condition):
+        d = int(folder.name.split("-d")[1][0])
+        return [{"id": f"hohmann:values:{d * 1000 + i}", "epoch": 1, "reward": 1.0, "format_ok": True, "output_tokens": 100,
+                 "context_tokens": 500, "messages": [], "tools": []} for i in range(rewarded_per_block)]
+
+    monkeypatch.setattr(rr, "episodes_from_dir", episodes)
+    return NS(train_seed=0, round=0, base_arm="base", only=None, count=None)
+
+
+def test_round_zero_asks_for_another_block_until_48_replies_are_rewarded(monkeypatch, tmp_path):
+    assert rr.cmd_select(_round0(monkeypatch, tmp_path, [0], 8)) == 3                # 8 < 48 and 7 blocks left
+    assert rr.cmd_select(_round0(monkeypatch, tmp_path / "b", [0, 1, 2], 16)) == 0   # 48 replies in 3 blocks, pooled
+
+
+def test_round_zero_stops_asking_after_the_last_block(monkeypatch, tmp_path, capsys):
+    a = _round0(monkeypatch, tmp_path, list(range(rr.MAX_BLOCKS_R0)), 1)
+    assert rr.cmd_select(a) == 0
+    assert "after the 8 blocks allowed" in capsys.readouterr().out
