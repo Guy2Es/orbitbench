@@ -21,6 +21,29 @@ def _tool_spec(info) -> dict:
                                              "parameters": info.parameters.model_dump(exclude_none=True)}}
 
 
+def _resolve(obj, attachments: dict):
+    """Inspect's log keeps long texts of its events (a tool's description) as `attachment://<id>`: put the text back."""
+    if isinstance(obj, str) and obj.startswith("attachment://"):
+        return attachments.get(obj.removeprefix("attachment://"), obj)
+    if isinstance(obj, dict):
+        return {k: _resolve(v, attachments) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_resolve(v, attachments) for v in obj]
+    return obj
+
+
+def sent_tools(sample, first) -> list[dict]:
+    """The tools exactly as the first request carried them (the server renders what it receives, `strict` included),
+    with their attachments resolved; the tool info of the event when the log holds no request (a mock model)."""
+    call = getattr(first, "call", None)
+    request = call.request if call is not None and isinstance(call.request, dict) else {}
+    tools = request.get("tools") or [_tool_spec(t) for t in (first.tools if first else [])]
+    tools = _resolve(tools, sample.attachments or {})
+    if "attachment://" in json.dumps(tools):
+        raise ValueError("a tool description is still an attachment reference: the log cannot be turned into training data")
+    return tools
+
+
 def _chat(message) -> dict:
     """One Inspect message as the dict a chat template reads (assistant tool calls carry their arguments as a dict)."""
     if message.role == "assistant":
@@ -64,7 +87,7 @@ def episodes_of(log, condition: str) -> list[dict]:
         first = next((e for e in sample.events or [] if e.event == "model"), None)
         completion = sample.output.completion if sample.output else ""
         out.append({**row, "messages": [_chat(m) for m in sample.messages],
-                    "tools": [_tool_spec(t) for t in (first.tools if first else [])],
+                    "tools": sent_tools(sample, first),
                     "completion": completion, "format_ok": format_ok(completion), "prompt_tokens": first_prompt_tokens(sample),
                     "context_tokens": context_tokens(sample)})
     return out

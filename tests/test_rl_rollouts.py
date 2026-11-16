@@ -129,3 +129,19 @@ def test_an_episode_says_how_long_its_transcript_is(tmp_path):
     assert "context_tokens" in ep and "prompt_tokens" in ep
     manifest_rows = read_sft(tmp_path / "x.jsonl") if write_sft([ep], tmp_path / "x.jsonl", arm="reward", round_=0, train_seed=0) else []
     assert "context_tokens" in manifest_rows[0]
+
+
+def test_tools_are_taken_as_sent_with_their_attachments_put_back():
+    from types import SimpleNamespace as NS
+
+    from orbitbench.rl.rollouts import sent_tools
+    sent = [{"type": "function", "function": {"name": "python", "description": "attachment://abc", "strict": True,
+                                              "parameters": {"type": "object", "properties": {"code": {"type": "string"}}}}}]
+    sample = NS(attachments={"abc": "Use the python function to execute code."})
+    out = sent_tools(sample, NS(call=NS(request={"tools": sent}), tools=[]))
+    assert out[0]["function"]["description"] == "Use the python function to execute code."
+    assert out[0]["function"]["strict"] is True                          # as the server received it
+    assert sent[0]["function"]["description"] == "attachment://abc"      # the log's own data is not modified
+    import pytest
+    with pytest.raises(ValueError):
+        sent_tools(NS(attachments={}), NS(call=NS(request={"tools": sent}), tools=[]))     # an unknown reference is refused
