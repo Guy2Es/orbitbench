@@ -125,7 +125,10 @@ def cmd_serve(a) -> int:
         if proc.poll() is not None:
             raise SystemExit(f"vLLM exited with code {proc.returncode}; see {LOG_FILE}")
         try:
-            urllib.request.urlopen(f"{BASE_URL}/models", timeout=2)
+            # vLLM reads VLLM_API_KEY from the environment and then refuses calls without it (401): send it.
+            request = urllib.request.Request(f"{BASE_URL}/models", headers={
+                "Authorization": f"Bearer {os.environ.get('VLLM_API_KEY', '')}"})
+            urllib.request.urlopen(request, timeout=2)
             print(f"serving {a.model} at {BASE_URL} (the harness needs VLLM_BASE_URL={BASE_URL} and VLLM_API_KEY, "
                   "set by the notebook)")
             return 0
