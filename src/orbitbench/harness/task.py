@@ -46,7 +46,7 @@ def build_task(instances: Sequence[Instance], condition: str = "B", *, tools: Op
         raise ValueError(f"unknown condition {condition!r}")
     if tools is None:    # condition A has no tool at all: the model answers from what it knows
         tools = [] if condition == "A" else [python(timeout=PYTHON_TIMEOUT_S)] + ([gmat_server()] if condition == "C" else [])
-    if condition == "A" and sandbox == "docker":
+    if condition == "A" and sandbox in ("docker", "local"):
         sandbox = None
     if sandbox == "docker":
         sandbox = ("docker", str(DOCKER_DIR / f"compose.{condition.lower()}.yaml"))

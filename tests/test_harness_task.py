@@ -119,3 +119,12 @@ def test_the_v10_catalog_extends_the_v01_one_without_changing_it():
     assert {i.level for i in found} == {1, 2, 3, 4}
     assert all(not i.well_posed for i in found if i.family.startswith("trap_"))
     assert all(i.well_posed for i in twins)
+
+
+def test_a_local_sandbox_is_accepted_for_b_and_dropped_for_a():
+    from orbitbench.harness.cli import parse
+    inst = next(iter(instances()))
+    assert build_task([inst], "B", sandbox="local").sandbox.type == "local"
+    assert build_task([inst], "A", sandbox="local").sandbox is None
+    assert parse(["run", "--condition", "B", "--model", "m", "--log-dir", "d"]).sandbox == "docker"
+    assert parse(["run", "--condition", "B", "--model", "m", "--log-dir", "d", "--sandbox", "local"]).sandbox == "local"

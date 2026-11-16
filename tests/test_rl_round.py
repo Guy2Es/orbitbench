@@ -1,0 +1,69 @@
+# tests/test_rl_round.py
+"""The phase-0 rule of the RL study, fixed before any run: eligibility, the choice, the 90 s switch to smaller blocks."""
+import importlib.util
+from pathlib import Path
+
+spec = importlib.util.spec_from_file_location("rl_round", Path(__file__).resolve().parents[1] / "scripts" / "rl_round.py")
+rr = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(rr)
+
+
+def ep(family, solved=0.0, tools=1, seconds=30.0, content="ok", tokens=500):
+    return {"family": family, "solved": solved, "tool_calls": tools, "total_time_s": seconds, "output_tokens": tokens,
+            "messages": [{"role": "assistant", "content": content}]}
+
+
+def good_episodes(**kw):
+    """Six episodes, solved in the four number families."""
+    return [ep(f, 1.0, **kw) for f in rr.NUMBER_FAMILIES] + [ep("hohmann", **kw), ep("trap_isp", **kw)]
+
+
+def test_a_candidate_is_eligible_only_if_all_four_conditions_hold():
+    assert rr.phase0_row("a", good_episodes(), True)["eligible"]
+    assert not rr.phase0_row("a", good_episodes(), False)["eligible"]                       # fine-tune or export failed
+    assert not rr.phase0_row("a", good_episodes(tools=0), True)["eligible"]                 # never calls a tool
+    assert not rr.phase0_row("a", good_episodes(content="<think>hmm</think>"), True)["eligible"]
+    two = [ep(f, 1.0) for f in rr.NUMBER_FAMILIES[:2]] + [ep(f) for f in rr.NUMBER_FAMILIES[2:]]
+    assert not rr.phase0_row("a", two, True)["eligible"]                                    # solved in 2 families only
+
+
+def test_the_choice_is_the_most_solved_per_gpu_hour_among_the_eligible_else_the_default():
+    slow = rr.phase0_row("slow", good_episodes(seconds=120.0), True)
+    fast = rr.phase0_row("fast", good_episodes(seconds=30.0), True)
+    ineligible = rr.phase0_row("best", [ep(f, 1.0, tools=0, seconds=1.0) for f in rr.NUMBER_FAMILIES], True)
+    assert rr.choose([slow, fast, ineligible]) == "fast"
+    assert rr.choose([ineligible], default="qwen3-4b") == "qwen3-4b"
+
+
+def test_the_table_says_when_blocks_shrink_to_96_instances():
+    text = rr.render_bakeoff([rr.phase0_row("slow", good_episodes(seconds=120.0), True)])
+    assert "choice by the rule: slow" in text and "96 instances" in text
+    assert "96 instances" not in rr.render_bakeoff([rr.phase0_row("fast", good_episodes(seconds=30.0), True)])
+    assert "no candidate eligible" in rr.render_bakeoff([rr.phase0_row("x", good_episodes(), False)])
+
+
+def test_the_server_picks_the_model_name_the_parallelism_and_the_evaluation_stays_home():
+    from types import SimpleNamespace as NS
+    assert rr.model_name("ollama", "q") == "ollama/q" and rr.model_name("vllm", "q") == "vllm/q"
+    assert rr.samples_of(NS(server="ollama", max_samples=None)) == 1 and rr.samples_of(NS(server="vllm", max_samples=None)) == 8
+    assert rr.samples_of(NS(server="vllm", max_samples=3)) == 3
+    import pytest
+    with pytest.raises(SystemExit):
+        rr.cmd_evaluate(NS(server="vllm", sandbox="local", condition="B", arm="x", tag="t", epochs=3, max_samples=None))
+
+
+def test_on_colab_the_block_size_follows_the_units_and_not_the_90_s_rule():
+    slow = rr.phase0_row("q", good_episodes(seconds=120.0), True)       # 6 episodes of 120 s, played 8 at a time
+    est = rr.block_estimate(slow, parallel=8, units_per_hour=1.5)
+    assert abs(est["block_hours"] - 2.4) < 1e-9 and abs(est["units"] - 32.4) < 1e-9     # 576 episodes; 9 blocks
+    text = rr.render_bakeoff([slow], parallel=8, units_per_hour=1.5)
+    assert "96 instances" not in text and "about 32 Colab units" in text and "blocks of 144 instances" in text
+    assert "blocks of 96 instances" in rr.render_bakeoff([slow], parallel=8, units_per_hour=10.0)      # 216 units > 150
+    assert "Colab units" not in rr.render_bakeoff([slow], parallel=8)                                  # no rate, no units
+
+
+def test_a_real_arm_cannot_be_played_from_another_seed():
+    from types import SimpleNamespace as NS
+    import pytest
+    with pytest.raises(SystemExit):
+        rr.cmd_play(NS(first_seed=1_950_000, arm="base", train_seed=0, round=0, redraw=0, block_n=2))

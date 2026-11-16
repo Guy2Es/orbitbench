@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from orbitbench.harness.analysis import analyze, paired_bootstrap, wilson
+from orbitbench.harness.analysis import analyze, compare, paired_bootstrap, wilson
 from orbitbench.harness.cli import parse
 
 
@@ -43,6 +43,42 @@ def test_the_analysis_pairs_instances_by_id_and_never_prints_one(tmp_path):
 
 def test_the_command_line_parses_analyze():
     assert parse(["analyze", "runs/a", "runs/b"]).dirs == [Path("runs/a"), Path("runs/b")]
+
+
+def write_run(path, rows):
+    path.mkdir()
+    (path / "episodes.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+    return path
+
+
+def test_compare_pairs_instances_averages_the_plays_and_pools_the_groups(tmp_path):
+    held = [f"hohmann_or_bielliptic_plan:maneuvers:{5000000 + i}" for i in range(4)]
+    near = [f"state_at_date:values:{5000000 + i}" for i in range(2)]
+    # base solves nothing; the arm (two training seeds, averaged first) solves 2 of 4 held-out in seed 0 and 4 of 4 in seed 1
+    base = write_run(tmp_path / "base", [row(i, "B", 0, "base") for i in held + near])
+    arm0 = write_run(tmp_path / "arm0", [row(i, "B", n < 2, "arm") for n, i in enumerate(held)] + [row(i, "B", 0, "arm") for i in near])
+    arm1 = write_run(tmp_path / "arm1", [row(i, "B", 1, "arm") for i in held] + [row(i, "B", 0, "arm") for i in near])
+    text = compare([base], [arm0, arm1], {"held out": {"hohmann_or_bielliptic_plan:maneuvers"}, "near": {"state_at_date:values"}})
+    held_line = next(ln for ln in text.splitlines() if ln.startswith("[held out]"))
+    assert " 4 " in held_line and "+0.750" in held_line and "0.0 / 3.0" in held_line
+    assert next(ln for ln in text.splitlines() if ln.startswith("[near]")).split()[2] == "+0.000"
+    assert "[all]" in text and "5000000" not in text
+
+
+def test_compare_refuses_mixed_conditions_and_unpaired_runs(tmp_path):
+    ids = [f"hohmann:values:{i}" for i in range(2)]
+    b = write_run(tmp_path / "b", [row(i, "B", 1) for i in ids])
+    c = write_run(tmp_path / "c", [row(i, "C", 1) for i in ids])
+    with pytest.raises(ValueError):
+        compare([b], [c])
+
+
+def test_the_command_line_parses_compare_and_the_rl_suites():
+    args = parse(["compare", "--base", "runs/a", "--arm", "runs/b", "runs/c"])
+    assert args.base == [Path("runs/a")] and args.arm == [Path("runs/b"), Path("runs/c")]
+    run = parse(["run", "--condition", "B", "--model", "m", "--log-dir", "d", "--suite", "train", "--train-n", "36"])
+    assert (run.suite, run.train_n) == ("train", 36)
+    assert parse(["run", "--condition", "B", "--model", "m", "--log-dir", "d", "--suite", "rl"]).suite == "rl"
 
 
 def test_failures_are_split_into_refusal_wrong_answer_and_no_answer():

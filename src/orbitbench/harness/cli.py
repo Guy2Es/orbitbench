@@ -4,9 +4,13 @@ python -m orbitbench.harness report runs/pilot-b runs/pilot-c"""
 import argparse
 from pathlib import Path
 
-from orbitbench.harness.catalog import CANARY_LINES, LUNAR_LINES, LUNAR_TEST_LINES, TWIN_LINES, V01_LINES, V10_LINES, instances
+from orbitbench.harness.catalog import (CANARY_LINES, LUNAR_LINES, LUNAR_TEST_LINES, RL_HELD_OUT_LINES, RL_IN_LINES, RL_LINES,
+                                        RL_NEAR_LINES, TWIN_LINES, V01_LINES, V10_LINES, instances)
 
-SUITES = {"v01": V01_LINES, "v10": V10_LINES, "twins": TWIN_LINES, "canary": CANARY_LINES, "lunar": LUNAR_LINES, "lunar_test": LUNAR_TEST_LINES}
+SUITES = {"v01": V01_LINES, "v10": V10_LINES, "twins": TWIN_LINES, "canary": CANARY_LINES, "lunar": LUNAR_LINES,
+          "lunar_test": LUNAR_TEST_LINES, "rl": RL_LINES}
+# "train" is not a list of lines: the training mix of orbitbench.rl, `--train-n` instances from `--first-seed` (>= 1,000,000).
+RL_GROUPS = {"in distribution": RL_IN_LINES, "near transfer": RL_NEAR_LINES, "held out": RL_HELD_OUT_LINES}
 
 
 def parse(argv=None) -> argparse.Namespace:
@@ -16,8 +20,13 @@ def parse(argv=None) -> argparse.Namespace:
     run.add_argument("--condition", choices=["A", "B", "C"], required=True)
     run.add_argument("--model", required=True, help="an Inspect model name, e.g. anthropic/claude-haiku-5-5")
     run.add_argument("--log-dir", required=True, type=Path, help="one folder per run: relaunching resumes it")
-    run.add_argument("--suite", choices=["v01", "v10", "twins", "canary", "lunar", "lunar_test"], default="v01",
-                     help="v01 (61 instances, frozen), v10 (v0.1 lines plus levels 4 and traps) or the well-posed twins")
+    run.add_argument("--suite", choices=["v01", "v10", "twins", "canary", "lunar", "lunar_test", "rl", "train"],
+                     default="v01", help="v01 (61 instances, frozen), v10 (v0.1 lines plus levels 4 and traps), the well-posed "
+                     "twins, rl (the RL study's evaluation, 138 instances, on its own private seeds) or train (the RL training mix)")
+    run.add_argument("--sandbox", choices=["docker", "local"], default="docker",
+                     help="where the Python tool runs: docker (frozen: no network, isolated) or local (this machine, for the RL "
+                          "training rollouts on Colab; never for results; condition B only)")
+    run.add_argument("--train-n", type=int, default=144, help="suite train only: how many distinct training instances")
     run.add_argument("--families", nargs="*", help="only these families (default: all of v0.1)")
     run.add_argument("--first-seed", type=int, default=0, help="each line uses seeds first-seed .. first-seed+n-1")
     run.add_argument("--per-line", type=int, help="at most this many seeds per line (default: all of the line)")
@@ -32,6 +41,9 @@ def parse(argv=None) -> argparse.Namespace:
                      help="OpenRouter only: use only providers that do not store prompts (for the private test seeds)")
     run.add_argument("--batch", action="store_true",
                      help="use the Message Batches API: half the price, but every turn waits for its batch")
+    compare = sub.add_parser("compare", help="arm minus base on the same instances, in one condition (RL study)")
+    compare.add_argument("--base", nargs="+", type=Path, required=True, help="run folders of the base model")
+    compare.add_argument("--arm", nargs="+", type=Path, required=True, help="run folders of the arm (several training seeds are averaged)")
     report = sub.add_parser("report", help="table, token bill and failures to audit, from the episodes.jsonl of runs")
     report.add_argument("dirs", nargs="+", type=Path)
     analyze = sub.add_parser("analyze", help="success rates with intervals and the C minus B difference, from runs")
@@ -49,11 +61,21 @@ def run(args: argparse.Namespace) -> int:
     from orbitbench.harness.report import load, render
     from orbitbench.harness.task import build_task
 
-    lines = [ln for ln in SUITES[args.suite] if not args.families or ln[0] in args.families]
-    if not lines:
-        raise SystemExit(f"no line matches {args.families}")
-    task = build_task(instances(lines, args.first_seed, args.per_line, args.max_level or (2 if args.condition == "A" else None)), args.condition, token_limit=args.token_limit,
-                      epochs=args.epochs)
+    max_level = args.max_level or (2 if args.condition == "A" else None)
+    if args.suite == "train":
+        from orbitbench.rl import train_instances
+        found = [i for i in train_instances(args.train_n, args.first_seed) if not args.families or i.family in args.families]
+        found = [i for i in found if max_level is None or i.level <= max_level]
+        if not found:
+            raise SystemExit(f"no training instance matches {args.families}")
+    else:
+        lines = [ln for ln in SUITES[args.suite] if not args.families or ln[0] in args.families]
+        if not lines:
+            raise SystemExit(f"no line matches {args.families}")
+        found = instances(lines, args.first_seed, args.per_line, max_level)
+    if args.sandbox == "local" and args.condition == "C":
+        raise SystemExit("--sandbox local is for condition B (or A): condition C needs the gmat service")
+    task = build_task(found, args.condition, token_limit=args.token_limit, epochs=args.epochs, sandbox=args.sandbox)
     routing = {}
     if args.provider:
         routing.update({"order": [args.provider], "allow_fallbacks": False})
@@ -82,6 +104,13 @@ def analyze(args: argparse.Namespace) -> int:
     return 0
 
 
+def compare(args: argparse.Namespace) -> int:
+    from orbitbench.harness.analysis import compare as render_compare
+    groups = {label: {f"{family}:{mode}" for family, mode, _ in lines} for label, lines in RL_GROUPS.items()}
+    print(render_compare(args.base, args.arm, groups))
+    return 0
+
+
 def main(argv=None) -> int:
     args = parse(argv)
-    return {"run": run, "report": report, "analyze": analyze}[args.command](args)
+    return {"run": run, "report": report, "analyze": analyze, "compare": compare}[args.command](args)

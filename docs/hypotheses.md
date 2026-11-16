@@ -136,3 +136,31 @@ hierarchical bootstrap (families, then instances); with it, `python -m orbitbenc
 gives -0.089 to +0.210 (the figure of the README), the point estimate being the same. It still contains zero. The text of
 2 November is not edited. The DeepSeek V4 Flash mentions above are superseded by `docs/freeze.md` (9 November 2026,
 "DeepSeek V4 Flash dropped").
+
+### 12 November 2026: the RL study, method and condition changed before any training run
+
+H6 and question 1 are unchanged. `docs/rl_plan.md` (amendment of 12 November 2026) changes how they are tested, before any
+model has been trained and before any test seed of the study has been drawn.
+
+- **Condition: B** (Python, no GMAT) for training and for the main evaluation; A and C are exploratory (k = 1).
+- **Method: reward-filtered self-training** (rollouts through the real harness, fine-tune on the replies the grader rewards,
+  two rounds) instead of GRPO. Arms 1 (format control: replies that parse) and 2 (reward) are matched in data volume and
+  steps, so arm 2 minus arm 1 is the reward signal alone.
+- **Primary comparison for H6:** arm 2 minus arm 0 (the untouched model, exported by the same script) on the two held-out
+  plan families, the grader's reward, paired per instance, bootstrap over instances. If arms 0 and 2 both solve nothing there,
+  H6 is reported as not testable at this model size.
+- **Model:** chosen by the phase-0 rule written in `docs/rl_plan.md`, on training seeds only.
+- **Test seeds:** a new private range, drawn before any training and opened once.
+
+### 16 November 2026: the RL study on Colab and the model fixed, before any training run
+
+H6, question 1 and the primary comparison are unchanged. Two amendments of `docs/rl_plan.md`, both dated 16 November 2026
+and written before any training run, change the following.
+
+- **Where:** training rollouts and fine-tunes run on Colab (vLLM, fp16, local sandbox). The evaluation stays at home, in
+  Docker with GMAT replay, from a GGUF Q4_K_M of every model, arm 0 included.
+- **Model:** Qwen3-4B-Instruct-2507, fixed. The choice among four candidates written on 12 November is dropped; phase 0
+  remains as a measurement of time and cost.
+- **Rules made exact:** the size of the blocks on Colab, the second round-0 block, the transcripts too long for the
+  fine-tune (in neither arm), the base of the fine-tunes (the files of arm 0).
+- **Test seeds:** the private range is drawn; its commitment is in `docs/rl_plan.md`.

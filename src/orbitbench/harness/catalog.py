@@ -36,6 +36,22 @@ LUNAR_LINES = (("lunar_impact", "values", 15),)
 # The same line on the private test seeds (30 consecutive integers, `--first-seed` is the first of them, see freeze.md).
 LUNAR_TEST_LINES = (("lunar_impact", "values", 30),)
 
+# The RL study (docs/rl_plan.md, amendment of 12 Nov 2026), played on its own private seed range, condition B.
+# In distribution: the four number families, the three traps and their twins, as in training. 24 + 18 + 18 = 60.
+RL_IN_LINES = (
+    ("hohmann", "values", 6), ("plane_change_dv", "values", 6), ("tsiolkovsky", "values", 6), ("escape_velocity", "values", 6),
+    *((f"trap_{kind}", "values", 6) for kind in ("radius", "isp", "period")),
+    *((f"trap_{kind}_twin", "values", 6) for kind in ("radius", "isp", "period")),
+)
+# Near transfer: the same physics asked as level-3 plans, and three other value families. 10 + 10 + 18 = 38.
+RL_NEAR_LINES = (
+    ("hohmann", "maneuvers", 10), ("plane_change_dv", "maneuvers", 10),
+    ("state_at_date", "values", 6), ("j2_drift", "values", 6), ("tle_state", "values", 6),
+)
+# Held out: two plan families the model never saw (declared on 4 Nov 2026). 40.
+RL_HELD_OUT_LINES = (("hohmann_or_bielliptic_plan", "maneuvers", 20), ("plane_change_budget_plan", "maneuvers", 20))
+RL_LINES = RL_IN_LINES + RL_NEAR_LINES + RL_HELD_OUT_LINES      # 138 instances
+
 
 def instances(lines=V01_LINES, first_seed: int = 0, per_line: int | None = None,
               max_level: int | None = None) -> list[Instance]:

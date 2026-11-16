@@ -232,6 +232,50 @@ def load_exclusions(path) -> set[tuple[str, str]]:
     return {(run, i) for run, ids in json.loads(open(path, encoding="utf-8").read()).items() for i in ids}
 
 
+def _mean_by_instance(rows: list[dict], key: str) -> dict[str, float]:
+    """{instance id: mean of `key`}: every play of an instance (attempts, and training seeds when several run folders
+    are given) is averaged first, so that an instance counts once."""
+    plays: dict[str, list[float]] = defaultdict(list)
+    for r in rows:
+        plays[r["id"]].append(float(r[key]))
+    return {i: sum(v) / len(v) for i, v in plays.items()}
+
+
+def compare(base_dirs, arm_dirs, groups: dict[str, set[str]] | None = None) -> str:
+    """The paired difference arm minus base on the same instances, in one condition: the grader's reward and the solved
+    rate, 95 % bootstrap over instances (paired), per line and pooled. `groups` maps a label to the lines it pools, each
+    written "family:mode" (for the RL study: in distribution, near transfer, held out). Instance ids pair the episodes and are never printed."""
+    base, arm = load(list(base_dirs)), load(list(arm_dirs))
+    conditions = {r["condition"] for r in base + arm}
+    if len(conditions) != 1:
+        raise ValueError(f"compare needs one condition on both sides, got {sorted(conditions)}")
+    if not base or not arm:
+        raise ValueError("compare needs episodes on both sides")
+    cond = conditions.pop()
+    r0, r1 = _mean_by_instance(base, "reward"), _mean_by_instance(arm, "reward")
+    s0, s1 = _mean_by_instance(base, "solved"), _mean_by_instance(arm, "solved")
+    ids = sorted(set(r0) & set(r1))
+    out = [f"Arm minus base, condition {cond}, paired on {len(ids)} instances ({len(set(r0) ^ set(r1))} unpaired, dropped); "
+           "plays of an instance averaged first, 95 % bootstrap over instances", ""]
+    out.append(f"{'':32} {'pairs':>5} {'reward':>8} {'interval':>16} {'solved':>8} {'interval':>16}  base solved / arm solved")
+
+    def line(label: str, keep: list[str]) -> None:
+        if not keep:
+            return
+        dr = paired_bootstrap([r1[i] - r0[i] for i in keep])
+        ds = paired_bootstrap([s1[i] - s0[i] for i in keep])
+        out.append(f"{label:32} {len(keep):>5} {dr[0]:>+8.3f} {f'{dr[1]:+.3f} to {dr[2]:+.3f}':>16} "
+                   f"{ds[0]:>+8.3f} {f'{ds[1]:+.3f} to {ds[2]:+.3f}':>16}  "
+                   f"{sum(s0[i] for i in keep):.1f} / {sum(s1[i] for i in keep):.1f}")
+
+    for label, lines in (groups or {}).items():
+        line(f"[{label}]", [i for i in ids if i.rsplit(":", 1)[0] in lines])
+        for name in sorted(lines):
+            line(f"  {name}", [i for i in ids if i.rsplit(":", 1)[0] == name])
+    line("[all]", ids)
+    return "\n".join(out)
+
+
 def analyze(dirs, exclude=None, by_level: bool = False) -> str:
     rows = load(dirs)
     if exclude:

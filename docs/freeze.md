@@ -265,3 +265,21 @@ of 2 instances, references computed with scipy and SGP4, differ at the 15th digi
 rounds every float to 12 significant digits before hashing (`rounded` in `tests/test_freeze_v10.py`); its value is
 `e2696cf9cba0485f`, identical on both platforms. No instance, tolerance, prompt or limit changes, and the published runs are
 unaffected: only the way the same dataset is fingerprinted changes. The earlier entries are not edited.
+
+## System message really sent (12 November 2026)
+
+The prompts frozen above are the texts of `harness/prompt.py`. The system message that a model receives is longer: the
+harness runs Inspect's `react` agent (`submit=False`), which appends its own default paragraph (577 characters, "You are a
+helpful assistant attempting to submit the best possible answer. You have several tools available… Do some reasoning before
+your actions…") after the text of `prompt.py`, with a blank line between them. The 15 logs of v0.1, v1.0 and the lunar line
+that were opened all carry it, condition A included, where it contradicts "You have no tools". The paragraph is the same for
+every model, condition and run, so no comparison between models changes; this entry only records what was actually sent.
+`orbitbench.rl.harness_system_message` reproduces it, and `tests/test_rl.py` checks it against the first message of a real
+run. No instance, tolerance, prompt text or limit changes; earlier entries are not edited.
+
+## Local sandbox for training rollouts (16 November 2026)
+
+The harness has an option `--sandbox local` (default `docker`, the frozen setting): the Python tool then runs on the machine
+that runs the harness, with its network. It exists for the training rollouts of the RL study on Colab, which has no Docker
+(`docs/rl_plan.md`, amendment of 16 November 2026). It is never used for a result of v0.1, v1.0, the lunar line or the RL
+evaluation, which stay in Docker with no network. Condition C refuses it. No prompt, tolerance, limit or instance changes.
