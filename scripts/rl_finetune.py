@@ -112,6 +112,9 @@ def cmd_train(a) -> int:
         args=SFTConfig(dataset_text_field="text", max_seq_length=MAX_SEQ, per_device_train_batch_size=1,
                        gradient_accumulation_steps=8, warmup_steps=5, num_train_epochs=EPOCHS, learning_rate=LR,
                        logging_steps=1, optim="adamw_8bit", weight_decay=0.001, lr_scheduler_type="linear", seed=a.seed,
+                       # no packing (Unsloth packs by default): the steps must follow the number of examples, not their
+                       # length, or the arm with the shorter replies would get fewer steps than the other
+                       packing=False,
                        fp16=not bf16, bf16=bf16, report_to="none", save_strategy="no",
                        output_dir=str(Path(a.out) / "trainer")))
     trainer = train_on_responses_only(trainer, instruction_part=INSTRUCTION_PART, response_part=RESPONSE_PART)

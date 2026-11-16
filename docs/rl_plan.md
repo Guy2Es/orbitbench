@@ -277,3 +277,12 @@ test with its token-count check, then phase 0 and its table in this file. At hom
 token-count check on a log played through Ollama; if the counts differ, the models are served through `llama-server --jinja`.
 
 **Files.** `notebooks/orbitbench_rl_colab.ipynb` (the Colab cells, in order), `scripts/rl_draw_seed.py`.
+
+**Addendum of 16 November 2026 (smoke test on Colab, before any training run).** Two things the first Colab session showed.
+(a) The first prompt rendered by the fine-tuning chat template had 89 tokens fewer than the server counted: the export took a
+tool's description from Inspect's log as an `attachment://` reference. The export now takes the tools as the first request
+carried them, references resolved; the two counts are then equal (778, 784 and 782 tokens on the smoke episodes), which the
+check of `rl_finetune.py` enforces before any fine-tune. (b) Unsloth packs several examples into one row by default, so the
+number of optimizer steps would follow the total length of the examples, and the reward arm (shortest replies) would get fewer
+steps than the format arm. Packing is switched off: the steps follow the number of examples, as the protocol says. Nothing else
+in the fine-tune changes. The fine-tune fits on the T4 in 16 bits (point 8 above: the L4 and 4-bit fallbacks are not used).
