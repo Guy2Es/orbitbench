@@ -309,3 +309,13 @@ not reached after 8 blocks, the fine-tune runs on what there is and the count is
 stops there and reports it as a negative result**. Round 1 is unchanged: one block per arm. Cost: at most 3 x (8 + 2) = 30 blocks of
 about 2.5 units, 75 units, plus about 10 for the 12 fine-tunes, against the ceiling of 150. The rewarded replies may come from few
 families; that is how the filter works, and the held-out families of the evaluation show what carries over. Nothing else changes.
+
+**Round 0 of training seed 0 (Colab, 17 November 2026, before any fine-tune).** Three blocks of 144 x 4 = 576 episodes were played by
+the base model (`--redraw 0, 1, 2`). Solved: 15, 20 and 16 (2.6 %, 3.5 %, 2.8 %); block times 2 h 00, 1 h 57, and 55 min for the
+third (its session was cut at 227/576 and the relaunch kept the finished episodes). Pooled by the rule above: **50 rewarded replies
+from 45 instances** (71,664 output tokens, sha256 f6d4026de902), so 48 is reached after 3 blocks. The format arm is matched at 50
+replies from 49 instances (53,812 tokens, sha256 0403a065ac71). One reply longer than 8192 tokens is left out of the sets.
+*Concentration.* Solved over the three blocks, by line: trap_period_twin 20, tsiolkovsky 17, hohmann 6, plane_change_dv 5,
+trap_isp_twin 2, trap_radius_twin 1; **escape_velocity, trap_isp, trap_period and trap_radius: 0**. The two largest lines hold
+about 73 % of the rewarded replies. The cause of the failures on trap_isp and trap_period/radius is mostly `invalid_format` and
+`missed_trap`. This is how the reward filter behaves; the held-out families of the evaluation show what carries over.
