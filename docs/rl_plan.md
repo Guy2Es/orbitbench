@@ -319,3 +319,15 @@ replies from 49 instances (53,812 tokens, sha256 0403a065ac71). One reply longer
 trap_isp_twin 2, trap_radius_twin 1; **escape_velocity, trap_isp, trap_period and trap_radius: 0**. The two largest lines hold
 about 73 % of the rewarded replies. The cause of the failures on trap_isp and trap_period/radius is mostly `invalid_format` and
 `missed_trap`. This is how the reward filter behaves; the held-out families of the evaluation show what carries over.
+
+**Round 1 of training seed 0 (Colab, 17 November 2026, before the final fine-tunes).** Each round-0 model played one block of
+144 x 4 = 576 episodes (block seed of round 1, instances 1008000 and following); these are training-range instances, not the private
+test range. *Reward arm* (`t0r0-reward`): **88 solved (15.3 %, stderr 0.020)**, 2 h 02. By line: trap_period_twin 17/32, hohmann 27/96,
+tsiolkovsky 26/96, plane_change_dv 10/96, trap_isp_twin 4/32, trap_radius_twin 4/32; **escape_velocity, trap_isp, trap_period and
+trap_radius: 0**. *Format arm* (`t0r0-format`): **15 solved (2.6 %, stderr 0.008)**, 2 h 08: tsiolkovsky 9/96, trap_period_twin 4/32,
+plane_change_dv 1/96, trap_isp_twin 1/32; hohmann 0/96 and the same four lines at 0. The base model solved 15, 20 and 16 per block
+(2.6 to 3.5 %), so the format arm stays at the base level and the gain of the reward arm does not come from format alone. This is
+a training-range measure; the verdict is the home evaluation on the private range and the held-out families.
+*Selection (D3).* Round 1 gives 76 rewarded replies from 56 instances (90,850 output tokens, sha256 00646e5cdf17) and the format arm
+is matched at 76 replies from 67 instances (77,025 tokens, sha256 061d022f852d). Pooled with round 0: **126 examples per arm**
+(`t0-r01-reward.jsonl` sha256 a09f1ba9d95c, `t0-r01-format.jsonl` sha256 cfd7383d94b1). The final fine-tunes start from the base model.
