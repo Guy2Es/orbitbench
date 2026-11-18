@@ -331,3 +331,10 @@ a training-range measure; the verdict is the home evaluation on the private rang
 *Selection (D3).* Round 1 gives 76 rewarded replies from 56 instances (90,850 output tokens, sha256 00646e5cdf17) and the format arm
 is matched at 76 replies from 67 instances (77,025 tokens, sha256 061d022f852d). Pooled with round 0: **126 examples per arm**
 (`t0-r01-reward.jsonl` sha256 a09f1ba9d95c, `t0-r01-format.jsonl` sha256 cfd7383d94b1). The final fine-tunes start from the base model.
+
+**Round 0 of training seed 1 (Colab, 18 November 2026, before any fine-tune).** Three blocks of 144 x 4 = 576 episodes were played by
+the base model (`--redraw 0, 1, 2`). Solved: 14 (2.4 %) and 24 (4.2 %) in the first two blocks, about 2 h each; the solved count of
+the third block was not recorded here. After two blocks the pool held 37 rewarded replies (under 48), so a third block was played.
+Pooled by the rule above: **53 rewarded replies from 46 instances** (101,941 output tokens, sha256 aa9ac4689958), so 48 is reached
+after 3 blocks. The format arm is matched at 53 replies from 53 instances (59,351 tokens, sha256 8c9585f57e18). The concentration by
+line is not recorded yet for this seed.
