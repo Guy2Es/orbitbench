@@ -338,3 +338,13 @@ the third block was not recorded here. After two blocks the pool held 37 rewarde
 Pooled by the rule above: **53 rewarded replies from 46 instances** (101,941 output tokens, sha256 aa9ac4689958), so 48 is reached
 after 3 blocks. The format arm is matched at 53 replies from 53 instances (59,351 tokens, sha256 8c9585f57e18). The concentration by
 line is not recorded yet for this seed.
+
+**Round 1 of training seed 1 (Colab, 19 November 2026, recorded after the final fine-tunes, from the Drive manifests).** Each round-0
+model played one block of 144 x 4 = 576 episodes on training-range instances, not the private test range. *Reward arm*
+(`t1r0-reward`): **103 solved (17.9 %, stderr about 0.016)**. By line: plane_change_dv 40/96, hohmann 30/96, trap_period_twin 12/32,
+tsiolkovsky 13/96, trap_radius_twin 6/32, trap_isp_twin 2/32; **escape_velocity, trap_isp, trap_period and trap_radius: 0**. The
+solved count of the format arm (`t1r0-format`) was not recorded in this file. *Selection.* Reward arm: 93 rewarded replies from 63
+instances (119,397 output tokens, sha256 c80dac5440bb); format arm matched at 93 replies from 75 instances (101,025 tokens, sha256
+68319dd436d1). Pooled with round 0: **146 examples per arm** (`t1-r01-reward.jsonl` 109 instances, sha256 5b06a734face;
+`t1-r01-format.jsonl` 128 instances, sha256 42d29a7ddf50). The final fine-tunes started from the base model (57 steps each, loss about
+0.10 to 0.05 for the format arm); models `t1-reward` and `t1-format` are on Drive.
