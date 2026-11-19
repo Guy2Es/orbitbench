@@ -348,3 +348,12 @@ instances (119,397 output tokens, sha256 c80dac5440bb); format arm matched at 93
 68319dd436d1). Pooled with round 0: **146 examples per arm** (`t1-r01-reward.jsonl` 109 instances, sha256 5b06a734face;
 `t1-r01-format.jsonl` 128 instances, sha256 42d29a7ddf50). The final fine-tunes started from the base model (57 steps each, loss about
 0.10 to 0.05 for the format arm); models `t1-reward` and `t1-format` are on Drive.
+
+**Round 0 of training seed 2 (Colab, 19 November 2026, before any fine-tune).** Three blocks of 144 x 4 = 576 episodes were played by
+the base model (`--redraw 0, 1, 2`). Solved: 15 (2.6 %) and 15 (2.6 %) in the first two blocks, 2 h 05 and 1 h 59; the solved count and
+time of the third block were not recorded here (its display froze in the browser while the run went on, and it finished normally).
+After two blocks the pool held 30 rewarded replies (under 48), so a third block was played. Pooled by the rule above: **50 rewarded
+replies from 43 instances** (94,476 output tokens, sha256 d9f6e49cd4ed), so 48 is reached after 3 blocks. The format arm is matched
+at 50 replies from 50 instances (58,394 tokens, sha256 e3973f47a08c). *Concentration (first two blocks only).* Solved by line:
+trap_period_twin 12, tsiolkovsky 10, hohmann 4, trap_isp_twin 3, escape_velocity 1; plane_change_dv, trap_isp, trap_period,
+trap_radius and trap_radius_twin: 0. The concentration of the third block is not recorded.
