@@ -366,3 +366,57 @@ instances (116,415 output tokens, sha256 0d4036c4cde6); format arm matched at 98
 `t2-r01-format.jsonl` 130 instances, sha256 fae140f6673a). The final fine-tunes started from the base model; models `t2-reward` and
 `t2-format` are complete on Drive (three weight shards each). With this, the three training seeds (T=0, 1, 2) are finished; the next
 step is the home evaluation on the private test range and the held-out families.
+
+## Amendment of 20 November 2026: the evaluation set-up and budget (written before any evaluation on the private range)
+
+All three training seeds are finished. This amendment fixes how the evaluation is played, before any episode is played on the private
+test range. The private seed is not read, printed or written here.
+
+**Budget measured by a pilot.** Base model, Ollama tag `qwen3-4b-instruct-16k`, GTX 1070, condition B, development seed 0, 17 episodes:
+mean 70.6 s per episode (in-distribution 41 s, near transfer 133 s, held-out plans 63 s on 2 episodes only). The suite is 138
+instances x k = 3 = 414 episodes per model, so about 8.3 h per model and 58 h for the 7 models (about 70 h if the held-out plans
+take 114 s). This is the only timing measured so far; it is a planning figure, not a result.
+
+**Order of play (fixed now).** The suite is split into two parts that never overlap: `held` (the 40 instances of the two held-out plan
+families, `hohmann_or_bielliptic_plan` and `plane_change_budget_plan`, 120 episodes per model) and `rest` (the other 98 instances,
+294 episodes per model); `scripts/rl_round.py evaluate --part held|rest`, one folder per part. Step 1: `held` for the base and the
+three reward models (these carry H6). Step 2: `held` for the three format models. Step 3: `rest` for the 7 models. If the budget
+runs out, the steps that were not played are reported as not played; nothing is replaced by other data. The same Ollama tags, the same
+GGUF files and the same Docker sandbox are used for every model, whichever machine plays them.
+
+**Models actually evaluated.** Each merged 16-bit model was downloaded from Drive and its weight shards checked against the sha256 of
+the Drive manifest (all 21 shards matched), then converted with llama.cpp build b12578 (`convert_hf_to_gguf.py`, f16, then
+`llama-quantize` Q4_K_M) by `scripts/rl_gguf.py`, the same way for the base. sha256 (first 12 characters), GGUF then Modelfile:
+
+| model | GGUF Q4_K_M | Modelfile |
+|---|---|---|
+| qwen3-4b (base, arm 0) | ec6ff7e7df47 | 62616e738859 |
+| t0-reward | ebb585d4a679 | 1e898954f683 |
+| t1-reward | 074fd0836636 | 2853783a0eb0 |
+| t2-reward | 87b0f39cb654 | 1e390adaeeb1 |
+| t0-format | 7f8fdae3634a | ffc508543c98 |
+| t1-format | 9bda6a6b7eb3 | 9a747ae3c016 |
+| t2-format | 75548a0d0733 | c398b0eae5fa |
+
+**Chat template: a correction.** A first export copied the TEMPLATE of the reference Ollama tag into the Modelfile. Ollama then used a
+Go template (`template source go_template`) which loses this model's tool calls: in a 2-episode test the converted model announced a
+Python call and the call was not parsed. The Modelfile of every model now keeps only the PARAMETER lines of the reference tag and
+`num_ctx 16384`, and no TEMPLATE, so each model uses the chat template stored in its own GGUF (`gguf_chat_template`), which comes from
+the same Hugging Face files for all 7 models. The 7 tags were checked: all show `template source gguf_chat_template`.
+
+**Token-count check (rule of the plan) and a deviation.** The prompts rendered by Ollama were compared with the prompts rendered at
+training time. All 17 pilot prompts differ by the same 9 tokens: Ollama (like llama-server) drops the field `"strict": true` of the tool
+specification that the training rendering contains. The fallback of the plan, serving with `llama-server --jinja`, does not remove it.
+We keep Ollama and record this as a deviation. It is the same for all 7 models, so it cannot favour one arm. A side measurement on
+`t0-reward` (9 development prompts, temperature 0, first reply only) gave a tool call in 8 of 9 prompts with Ollama's rendering and
+8 of 9 with the training rendering, the same prompt failing in both; with 9 prompts this does not show that the field is harmless, only that no
+difference appeared.
+
+**Development test before the first evaluation.** Each of the 7 tags played 2 episodes of the frozen v0.1 suite (hohmann:values:0 and
+plane_change_dv:values:0, development seed 0, not the private range): every model called the Python tool in both episodes and no
+provider error occurred (rewards: base 0 and 0, t0-reward 1 and 0, t1-reward 0 and 1, t2-reward 1 and 1, the three format models 0 and 0).
+Two episodes per model say nothing about quality; the test only shows that the tags run end to end.
+
+**Machine.** The evaluation may be played on this machine or on a rented GPU server with the same GGUF files, Ollama, Docker sandbox and
+protocol; only the speed changes. Which one is used, and any interruption, will be recorded in the results file. The private seed must
+not be left on a rented machine after the evaluation.

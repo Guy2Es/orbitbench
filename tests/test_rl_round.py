@@ -52,6 +52,26 @@ def test_the_server_picks_the_model_name_the_parallelism_and_the_evaluation_stay
         rr.cmd_evaluate(NS(server="vllm", sandbox="local", condition="B", arm="x", tag="t", epochs=3, max_samples=None))
 
 
+def test_the_evaluation_parts_split_the_138_instances_into_40_and_98_without_overlap(monkeypatch, tmp_path):
+    from types import SimpleNamespace as NS
+    from orbitbench.harness.catalog import RL_LINES, instances
+    held = instances([ln for ln in RL_LINES if ln[0] in rr.HELD_OUT_FAMILIES])
+    rest = instances([ln for ln in RL_LINES if ln[0] in rr.REST_FAMILIES])
+    assert len(held) == 40 and len(rest) == 98 and len(instances(RL_LINES)) == 138
+    assert not {i.family for i in held} & {i.family for i in rest}
+    calls = []
+    monkeypatch.setattr(rr, "RL", tmp_path)
+    monkeypatch.setattr(rr, "private_first_seed", lambda: 7)
+    monkeypatch.setattr(rr, "harness", lambda cmd: calls.append(cmd) or 0)
+    base = dict(server="ollama", sandbox="docker", condition="B", arm="x", tag="t", epochs=3, max_samples=None)
+    rr.cmd_evaluate(NS(**base, part="held"))
+    rr.cmd_evaluate(NS(**base, part="rest"))
+    rr.cmd_evaluate(NS(**base))                                                    # no part: the whole suite, as before
+    assert calls[0][calls[0].index("--families") + 1:calls[0].index("--families") + 3] == list(rr.HELD_OUT_FAMILIES)
+    assert calls[0][-1].endswith("eval-x-held") and calls[1][-1].endswith("eval-x-rest") and calls[2][-1].endswith("eval-x")
+    assert "--families" in calls[1] and "--families" not in calls[2]
+
+
 def test_on_colab_the_block_size_follows_the_units_and_not_the_90_s_rule():
     slow = rr.phase0_row("q", good_episodes(seconds=120.0), True)       # 6 episodes of 120 s, played 8 at a time
     est = rr.block_estimate(slow, parallel=8, units_per_hour=1.5)

@@ -19,12 +19,13 @@ def test_the_vllm_command_is_fp16_with_server_side_tool_parsing_and_a_16k_contex
     assert cmd[cmd.index("--tool-call-parser") + 1] == "hermes"
 
 
-def test_the_modelfile_reuses_the_template_and_sets_the_weights_and_the_context():
+def test_the_modelfile_keeps_the_parameters_not_the_template_and_sets_the_weights_and_the_context():
     gguf = load("rl_gguf")
     text = gguf.modelfile_text(Path("m-Q4_K_M.gguf"), 'FROM old.gguf\nTEMPLATE """x"""\nPARAMETER num_ctx 4096\nPARAMETER stop "<|im_end|>"')
     lines = text.splitlines()
     assert lines[0].startswith("FROM ") and lines[0].endswith("m-Q4_K_M.gguf")
-    assert 'TEMPLATE """x"""' in lines and 'PARAMETER stop "<|im_end|>"' in lines
+    assert not any("TEMPLATE" in ln for ln in lines)             # a copied template loses the tool calls in Ollama
+    assert 'PARAMETER stop "<|im_end|>"' in lines
     assert lines.count("PARAMETER num_ctx 16384") == 1 and "PARAMETER num_ctx 4096" not in lines
 
 

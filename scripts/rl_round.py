@@ -24,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
+from orbitbench.harness.catalog import RL_HELD_OUT_LINES, RL_LINES  # noqa: E402
 from orbitbench.rl.data import MAX_BLOCKS_R0, PHASE0_FIRST_SEED, block_first_seed  # noqa: E402
 from orbitbench.rl.rollouts import episodes_from_dir, read_sft, select, too_long, write_sft  # noqa: E402
 
@@ -37,6 +38,11 @@ MAX_EXAMPLE_TOKENS = 8192     # longer transcripts are in neither arm's set: MAX
 BLOCKS = 9                    # 3 training seeds x (round 0 once, round 1 once per arm)
 UNITS_CEILING = 150           # Colab compute units a month for the 9 blocks (rl_plan.md, amendment of 16 November 2026)
 NUMBER_FAMILIES = ("hohmann", "plane_change_dv", "tsiolkovsky", "escape_velocity")
+# The evaluation can be played in two parts so that the primary comparison (H6, the held-out plan families) comes first. The two
+# held-out families have no other line, so a filter on family names splits the 138 instances exactly: 40 and 98.
+HELD_OUT_FAMILIES = tuple(dict.fromkeys(f for f, _, _ in RL_HELD_OUT_LINES))
+REST_FAMILIES = tuple(dict.fromkeys(f for f, _, _ in RL_LINES if f not in HELD_OUT_FAMILIES))
+EVAL_PARTS = {"all": (None, ""), "held": (HELD_OUT_FAMILIES, "-held"), "rest": (REST_FAMILIES, "-rest")}
 
 
 # ---- the rule of phase 0, fixed before any run (docs/rl_plan.md, section 3) -------------------------------------------
@@ -211,8 +217,10 @@ def cmd_evaluate(a) -> int:
     if a.server != "ollama" or a.sandbox != "docker":
         raise SystemExit("the evaluation is played at home, with Ollama and the Docker sandbox")
     cond = a.condition
-    folder = RL / f"eval-{a.arm}" if cond == "B" else RL / f"eval-{a.arm}-{cond}"
-    return harness(["run", "--condition", cond, "--suite", "rl", "--first-seed", str(private_first_seed()),
+    families, suffix = EVAL_PARTS[getattr(a, "part", "all")]       # one folder per part: a folder resumes only its own task
+    folder = RL / f"eval-{a.arm}{suffix}" if cond == "B" else RL / f"eval-{a.arm}-{cond}{suffix}"
+    only = ["--families", *families] if families else []
+    return harness(["run", "--condition", cond, "--suite", "rl", "--first-seed", str(private_first_seed()), *only,
                     "--epochs", str(a.epochs), "--max-samples", str(samples_of(a)), "--token-limit", str(TOKEN_GUARD),
                     "--model", model_name(a.server, a.tag), "--log-dir", str(folder)])
 
@@ -260,6 +268,8 @@ def main(argv=None) -> int:
     p.add_argument("--tag", required=True)
     p.add_argument("--condition", choices=["A", "B", "C"], default="B")
     p.add_argument("--epochs", type=int, default=3)
+    p.add_argument("--part", choices=list(EVAL_PARTS), default="all",
+                   help="all: the 138 instances in one folder; held: the 40 held-out plans (H6) first; rest: the other 98")
     common(p)
     a = ap.parse_args(argv)
     return {"phase0": cmd_phase0, "bakeoff": cmd_bakeoff, "play": cmd_play, "select": cmd_select, "merge": cmd_merge,
