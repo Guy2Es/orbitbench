@@ -357,3 +357,12 @@ replies from 43 instances** (94,476 output tokens, sha256 d9f6e49cd4ed), so 48 i
 at 50 replies from 50 instances (58,394 tokens, sha256 e3973f47a08c). *Concentration (first two blocks only).* Solved by line:
 trap_period_twin 12, tsiolkovsky 10, hohmann 4, trap_isp_twin 3, escape_velocity 1; plane_change_dv, trap_isp, trap_period,
 trap_radius and trap_radius_twin: 0. The concentration of the third block is not recorded.
+
+**Round 1 of training seed 2 (Colab, 20 November 2026, recorded after the final fine-tunes, from the Drive manifests).** Each round-0
+model played one block of 144 x 4 = 576 episodes on training-range instances, not the private test range. The solved counts of the
+two arms were not recorded in this file (the outputs of D1 and D2 were not sent). *Selection.* Reward arm: 98 rewarded replies from 68
+instances (116,415 output tokens, sha256 0d4036c4cde6); format arm matched at 98 replies from 80 instances (88,959 tokens, sha256
+13849f3cd6bc). Pooled with round 0: **148 examples per arm** (`t2-r01-reward.jsonl` 111 instances, sha256 913c4a84ed1a;
+`t2-r01-format.jsonl` 130 instances, sha256 fae140f6673a). The final fine-tunes started from the base model; models `t2-reward` and
+`t2-format` are complete on Drive (three weight shards each). With this, the three training seeds (T=0, 1, 2) are finished; the next
+step is the home evaluation on the private test range and the held-out families.
